@@ -24,12 +24,13 @@ cd .\backend\
 ### 2. **Instale as dependências**
 ```bash
 npm install
+npm install prisma@5 @prisma/client@5
 ```
 
 ### 3.0 **Conecte o Prisma com o nosso banco de dados no Postgre**
 Caso o comando abaixo não funcione, busque corrigir na sua máquina a versão do DATBASE_URL no arquivo .env
 ```bash
-prisma db pull
+npx prisma db pull
 ```
 
 
@@ -51,6 +52,7 @@ http://localhost:<PORTA>/titular/12345678900
 
 ### ⚡ **Extra: Prisma Studio** (opcional)
 ```bash
+cd .\backend\
 npx prisma studio
 ```
 
