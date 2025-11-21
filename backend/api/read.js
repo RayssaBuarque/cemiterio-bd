@@ -45,6 +45,7 @@ const getAllTitulares = async (req, res) => {
   }
 };
 
+
 export default  {
   getTitularByCpf,
   getAllTitulares
