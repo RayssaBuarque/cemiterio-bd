@@ -11,6 +11,7 @@ sepultamentos.
 
 ## ✍️ Como executar o backend
 @Naju e @Rayssa - checar o arquivo [TO_TO](C:\Users\rayss\Workspace\cemiterio-bd\backend\TO_DO.md) para conferir endpoints necessários
+versão ideal do prisma e prisma-client: 5.0.0
 
 ### 1. **Crie o banco de dados no PostgreSQL**
 - Use PgAdmin com os arquivos SQL deste repositório
