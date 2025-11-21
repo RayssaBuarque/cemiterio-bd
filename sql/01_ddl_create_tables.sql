@@ -1,54 +1,129 @@
--- Database: cemiterio
+-- DROP TABLE IF EXISTS evento_velorio, evento_cremacao, evento_sepultamento, 
+--                      funcionario_evento, compra, falecido, contrato, 
+--                      localizacao_tumulo, telefone_fornecedor, tumulo, 
+--                      evento, funcionario, fornecedor, titular CASCADE;
 
--- DROP DATABASE IF EXISTS cemiterio;
 
--- CREATE DATABASE cemiterio
---     WITH
---     OWNER = postgres
---     ENCODING = 'UTF8'
---     LC_COLLATE = 'Portuguese_Brazil.1252'
---     LC_CTYPE = 'Portuguese_Brazil.1252'
---     LOCALE_PROVIDER = 'libc'
---     TABLESPACE = pg_default
---     CONNECTION LIMIT = -1
---     IS_TEMPLATE = False;
-	
-	
--- CRIANDO TABELAS DO NOSSO MODELO MER:
-CREATE TABLE IF NOT EXISTS tb_titular(
-	CPF				VARCHAR(11) PRIMARY KEY,
-	nome 			VARCHAR(250) NOT NULL,
-	email 			VARCHAR(250) UNIQUE NOT NULL,
-	telefone 		INT UNIQUE,
-	endereco 		VARCHAR(250)
+-- ============================================
+-- TABELAS 
+-- ============================================
+SET search_path TO public;
+
+CREATE TABLE titular (
+    CPF CHAR(11) PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    endereco VARCHAR(200),
+    email VARCHAR(100),
+    telefone VARCHAR(15)
 );
 
-CREATE TABLE IF NOT EXISTS tb_fornecedor(
-	id_fornecedor 	INT PRIMARY KEY,
-	nome 			VARCHAR(250) NOT NULL,
-	endereco 		VARCHAR(250) NOT NULL,
-	telefone 		INT UNIQUE
+CREATE TABLE tumulo (
+    ID_tumulo SERIAL PRIMARY KEY,
+    status VARCHAR(20),
+    tipo VARCHAR(30),
+    capacidade INT
+);
+CREATE TABLE localizacao_tumulo (
+    ID_tumulo INT,
+    quadra VARCHAR(10),
+    setor VARCHAR(10),
+    numero INT,
+	PRIMARY KEY (ID_tumulo, quadra, setor, numero),
+	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
 );
 
-CREATE TABLE IF NOT EXISTS tb_tumulo(
-	id_tumulo 		INT PRIMARY KEY,
-	quadra 			INT NOT NULL,
-	setor 			INT NOT NULL,
-	numeracao	 	INT NOT NULL,
-	status 			CHAR NOT NULL,
-	tipo 			CHAR NOT NULL,
-	capacidade	 	INT NOT NULL
+CREATE TABLE contrato ( -----------------
+    CPF CHAR(11),
+    ID_tumulo INT,
+    data_inicio DATE,
+    prazo_vigencia INT,
+    valor NUMERIC(10,2),
+    status VARCHAR(20),
+	PRIMARY KEY (CPF, data_inicio),
+    FOREIGN KEY (CPF) REFERENCES titular(CPF),
+    FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
 );
 
-CREATE TABLE IF NOT EXISTS tb_contrato_concessao(
-	CPF_titular 	VARCHAR(11),
-	id_tumulo 		INT,
-	status 			CHAR NOT NULL,
-	valor 			DECIMAL NOT NULL,
-	prazo_vigencia 	DATE NOT NULL,
-	data_inicio 	DATE NOT NULL,
-	PRIMARY KEY(CPF_titular, id_tumulo),
-	CONSTRAINT fk_cpf_titular FOREIGN KEY (CPF_titular) REFERENCES tb_titular(CPF),
-	CONSTRAINT fk_id_tumulo FOREIGN KEY (id_tumulo) REFERENCES tb_tumulo(id_tumulo)
+CREATE TABLE evento (
+    ID_evento SERIAL PRIMARY KEY,
+    lugar VARCHAR(100),
+    dia DATE,
+    horario TIME,
+    valor NUMERIC(10,2)
 );
 
+CREATE TABLE falecido ( ------------
+    CPF CHAR(11),
+    nome VARCHAR(100) NOT NULL,
+    data_falecimento DATE,
+    data_nascimento DATE,
+    motivo VARCHAR(200),
+	ID_tumulo INT,
+	PRIMARY KEY (CPF, nome),
+	FOREIGN KEY (CPF) REFERENCES titular(CPF),
+	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
+);
+
+CREATE TABLE fornecedor (
+    CNPJ CHAR(14) PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    endereco VARCHAR(200)
+);
+
+CREATE TABLE telefone_fornecedor (
+    CNPJ CHAR(14),
+    telefone VARCHAR(15),
+    PRIMARY KEY (CNPJ, telefone),
+    FOREIGN KEY (CNPJ) REFERENCES fornecedor(CNPJ)
+);
+
+CREATE TABLE funcionario (
+    CPF CHAR(11) PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    funcao VARCHAR(50),
+    modelo_contrato VARCHAR(30),
+    horas_semanais INT,
+    salario NUMERIC(10,2)
+);
+
+CREATE TABLE compra (
+    CNPJ CHAR(14),
+	ID_evento INT,
+    valor NUMERIC(10,2),
+    item VARCHAR(100),
+    quantidade INT,
+    data_compra DATE,
+	horario TIME,
+	PRIMARY KEY (CNPJ, ID_evento),
+    FOREIGN KEY (CNPJ) REFERENCES fornecedor(CNPJ),
+	FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
+);
+
+CREATE TABLE funcionario_evento (
+    CPF CHAR(11),
+    ID_evento INT,
+    PRIMARY KEY (CPF, ID_evento),
+    FOREIGN KEY (CPF) REFERENCES funcionario(CPF),
+    FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
+);
+
+CREATE TABLE evento_sepultamento (
+    ID_evento INT,
+    local_destino VARCHAR (100),
+    PRIMARY KEY (id_evento, local_destino),
+    FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
+);
+
+CREATE TABLE evento_cremacao (
+    ID_evento INT,
+    forno INT,
+    PRIMARY KEY (ID_evento, forno),
+    FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
+);
+
+CREATE TABLE evento_velorio (
+    ID_evento INT,
+    sala INT,
+    PRIMARY KEY (ID_evento, sala),
+    FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
+);

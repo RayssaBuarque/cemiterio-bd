@@ -1,8 +1,7 @@
 # Cemitério 💀
 ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)    ![CSS3](https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white)   ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 
-<!-- NÃO TENHO CERTEZA SE USAREMOS TYPESCRIPT: -->
-<!-- ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) -->
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 
 Este repositório guarda códigos e documentações sobre o Sistema de Banco de Dados desenvolvido como projeto da disciplina ACH2004 (Banco de Dados I).
 
@@ -10,6 +9,42 @@ O sistema tem como objetivo gerenciar as informações do Cemitério **fictício
 sepultamentos.
 
 
+## ✍️ Como executar o backend
+@Naju e @Rayssa - checar o arquivo [TO_TO](C:\Users\rayss\Workspace\cemiterio-bd\backend\TO_DO.md) para conferir endpoints necessários
+
+### 1. **Crie o banco de dados no PostgreSQL**
+- Use PgAdmin com os arquivos SQL deste repositório
+
+### 2.0 **Vá para a pasta do backend no terminal:**
+```bash
+cd .\backend\
+```
+
+### 2. **Instale as dependências**
+```bash
+npm install
+```
+
+### 3. **Gere o Prisma Client**
+```bash
+npx prisma generate
+```
+
+### 4. **Execute o servidor**
+```bash
+npm run dev
+```
+
+### 5. **Teste a API**
+Abra no navegador:
+```
+http://localhost:<PORTA>/titular/12345678900
+```
+
+### ⚡ **Extra: Prisma Studio** (opcional)
+```bash
+npx prisma studio
+```
 
 
 ## 📂 Estrutura do Repositório
@@ -21,9 +56,6 @@ sepultamentos.
     * `sql/01_ddl_create_tables.sql`: Script principal para criação das tabelas e chaves.
     * `sql/02_dml_insert_data.sql`: Script com dados de exemplo.
 * `README.md`: Este arquivo.
-
-
-
 
 ## 📚 Bibliotecas, Frameworks e Ferramentas
 

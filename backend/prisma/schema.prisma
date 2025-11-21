@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model compra {
+  cnpj        String     @db.Char(14)
+  id_evento   Int
+  valor       Decimal?   @db.Decimal(10, 2)
+  item        String?    @db.VarChar(100)
+  quantidade  Int?
+  data_compra DateTime?  @db.Date
+  horario     DateTime?  @db.Time(6)
+  fornecedor  fornecedor @relation(fields: [cnpj], references: [cnpj], onDelete: NoAction, onUpdate: NoAction)
+  evento      evento     @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([cnpj, id_evento])
+}
+
+model contrato {
+  cpf            String   @db.Char(11)
+  id_tumulo      Int?
+  data_inicio    DateTime @db.Date
+  prazo_vigencia Int?
+  valor          Decimal? @db.Decimal(10, 2)
+  status         String?  @db.VarChar(20)
+  titular        titular  @relation(fields: [cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
+  tumulo         tumulo?  @relation(fields: [id_tumulo], references: [id_tumulo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([cpf, data_inicio])
+}
+
+model evento {
+  id_evento           Int                   @id @default(autoincrement())
+  lugar               String?               @db.VarChar(100)
+  dia                 DateTime?             @db.Date
+  horario             DateTime?             @db.Time(6)
+  valor               Decimal?              @db.Decimal(10, 2)
+  compra              compra[]
+  evento_cremacao     evento_cremacao[]
+  evento_sepultamento evento_sepultamento[]
+  evento_velorio      evento_velorio[]
+  funcionario_evento  funcionario_evento[]
+}
+
+model evento_cremacao {
+  id_evento Int
+  forno     Int
+  evento    evento @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_evento, forno])
+}
+
+model evento_sepultamento {
+  id_evento     Int
+  local_destino String @db.VarChar(100)
+  evento        evento @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_evento, local_destino])
+}
+
+model evento_velorio {
+  id_evento Int
+  sala      Int
+  evento    evento @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_evento, sala])
+}
+
+model falecido {
+  cpf              String    @db.Char(11)
+  nome             String    @db.VarChar(100)
+  data_falecimento DateTime? @db.Date
+  data_nascimento  DateTime? @db.Date
+  motivo           String?   @db.VarChar(200)
+  id_tumulo        Int?
+  titular          titular   @relation(fields: [cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
+  tumulo           tumulo?   @relation(fields: [id_tumulo], references: [id_tumulo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([cpf, nome])
+}
+
+model fornecedor {
+  cnpj                String                @id @db.Char(14)
+  nome                String                @db.VarChar(100)
+  endereco            String?               @db.VarChar(200)
+  compra              compra[]
+  telefone_fornecedor telefone_fornecedor[]
+}
+
+model funcionario {
+  cpf                String               @id @db.Char(11)
+  nome               String               @db.VarChar(100)
+  funcao             String?              @db.VarChar(50)
+  modelo_contrato    String?              @db.VarChar(30)
+  horas_semanais     Int?
+  salario            Decimal?             @db.Decimal(10, 2)
+  funcionario_evento funcionario_evento[]
+}
+
+model funcionario_evento {
+  cpf         String      @db.Char(11)
+  id_evento   Int
+  funcionario funcionario @relation(fields: [cpf], references: [cpf], onDelete: NoAction, onUpdate: NoAction)
+  evento      evento      @relation(fields: [id_evento], references: [id_evento], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([cpf, id_evento])
+}
+
+model localizacao_tumulo {
+  id_tumulo Int
+  quadra    String @db.VarChar(10)
+  setor     String @db.VarChar(10)
+  numero    Int
+  tumulo    tumulo @relation(fields: [id_tumulo], references: [id_tumulo], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([id_tumulo, quadra, setor, numero])
+}
+
+model telefone_fornecedor {
+  cnpj       String     @db.Char(14)
+  telefone   String     @db.VarChar(15)
+  fornecedor fornecedor @relation(fields: [cnpj], references: [cnpj], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([cnpj, telefone])
+}
+
+model titular {
+  cpf      String     @id @db.Char(11)
+  nome     String     @db.VarChar(100)
+  endereco String?    @db.VarChar(200)
+  email    String?    @db.VarChar(100)
+  telefone String?    @db.VarChar(15)
+  contrato contrato[]
+  falecido falecido[]
+}
+
+model tumulo {
+  id_tumulo          Int                  @id @default(autoincrement())
+  status             String?              @db.VarChar(20)
+  tipo               String?              @db.VarChar(30)
+  capacidade         Int?
+  contrato           contrato[]
+  falecido           falecido[]
+  localizacao_tumulo localizacao_tumulo[]
+}

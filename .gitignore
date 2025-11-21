@@ -1,2 +1,5 @@
-.env
+# Não estamos vazando nenhum segredo do Estado nesse .env
+# Como a ideia é todos conseguirem criar uma cópia do banco de dados localmente,
+# não é preciso esconder sua URL e demais acessos
+# .env 
 node_modules/
