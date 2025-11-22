@@ -187,22 +187,93 @@ async function getTumuloById(req, res) {
 
 //-------------------------------------------------------------------------//
 // GET /tumulos/status?status=STATUS                                       //
-// Filtra túmulos pelo campo "status" quando query param é enviado         //
+// Filtra túmulos pelo campo "status"                                      //
 //-------------------------------------------------------------------------//
 async function getTumuloByStatus(req, res) {
-  const { status } = req.query;
+  const { status } = req.params;
 
   try {
     const tumulos = await prisma.tumulo.findMany({
-      where: {
-        ...(status && { status })
-      }
+      where: { status }
     });
 
     res.json(tumulos);
 
   } catch (error) {
     console.error("Erro ao filtrar túmulos:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+}
+
+
+//-------------------------------------------------------------------------//
+// GET /funcionarios                                                       //
+// Retorna todos os funcionários                                           //
+//-------------------------------------------------------------------------//
+async function getFuncionarios(req, res) {
+  try {
+    const funcionarios = await prisma.funcionario.findMany();
+    res.json(funcionarios);
+
+  } catch (error) {
+    console.error("Erro ao buscar funcionários:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+}
+
+
+//-------------------------------------------------------------------------//
+// GET /eventos                                                            //
+// Retorna todos os eventos                                                //
+//-------------------------------------------------------------------------//
+async function getEventos(req, res) {
+  try {
+    const eventos = await prisma.evento.findMany();
+    res.json(eventos);
+
+  } catch (error) {
+    console.error("Erro ao buscar eventos:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+}
+
+
+//-------------------------------------------------------------------------//
+// GET /eventos/:id_evento                                                 //
+// Retorna um evento cujo id = :id_evento                                  //
+//-------------------------------------------------------------------------//
+async function getEventoById(req, res) {
+  const { id_evento } = req.params;
+
+  try {
+    const evento = await prisma.evento.findUnique({
+      where: { id_evento: Number(id_evento) }
+    });
+
+    if (!evento) {
+      return res.status(404).json({ error: "Evento não encontrado" });
+    }
+
+    res.json(evento);
+
+  } catch (error) {
+    console.error("Erro ao buscar evento:", error);
+    res.status(500).json({ error: "Erro interno do servidor" });
+  }
+}
+
+
+//-------------------------------------------------------------------------//
+// GET /fornecedores                                                       //
+// Retorna todos os fornecedores                                           //
+//-------------------------------------------------------------------------//
+async function getFornecedores(req, res) {
+  try {
+    const fornecedores = await prisma.fornecedor.findMany();
+    res.json(fornecedores);
+
+  } catch (error) {
+    console.error("Erro ao buscar fornecedores:", error);
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 }
@@ -221,5 +292,12 @@ export default  {
 
   getAllTumulos,
   getTumuloById,
-  getTumuloByStatus
+  getTumuloByStatus,
+
+  getFuncionarios,
+
+  getEventos,
+  getEventoById,
+
+  getFornecedores
 };

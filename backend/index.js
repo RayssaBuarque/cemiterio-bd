@@ -16,8 +16,13 @@ app.get("/contrato/cpf/:cpf", readRoutes.getContratosByCpf);
 app.get("/contrato/tumulo/:id_tumulo", readRoutes.getContratosByTumulo);
 app.get("/falecidos", readRoutes.getAllFalecidos);
 app.get("/falecido/:cpf", readRoutes.getFalecidoByCpf);
-app.get("/tumulos", readRoutes.getTumuloByStatus);
+app.get("/tumulos", readRoutes.getAllTumulos);
 app.get("/tumulo/:id_tumulo", readRoutes.getTumuloById);
+app.get("/tumulos/:status", readRoutes.getTumuloByStatus);
+app.get("/funcionarios", readRoutes.getFuncionarios);
+app.get("/eventos", readRoutes.getEventos);
+app.get("/evento/:id_evento", readRoutes.getEventoById);
+app.get("/fornecedores", readRoutes.getFornecedores);
 
 
 // Rotas de INSERÇÃO
