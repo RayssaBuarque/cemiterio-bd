@@ -11,7 +11,14 @@ const PORT = process.env.PORT || 3000;
 // Rotas de LEITURA
 app.get("/titular/:cpf", readRoutes.getTitularByCpf);
 app.get("/titulares", readRoutes.getAllTitulares);
-// (...)
+app.get("/contratos", readRoutes.getContratos);
+app.get("/contrato/cpf/:cpf", readRoutes.getContratosByCpf);
+app.get("/contrato/tumulo/:id_tumulo", readRoutes.getContratosByTumulo);
+app.get("/falecidos", readRoutes.getAllFalecidos);
+app.get("/falecido/:cpf", readRoutes.getFalecidoByCpf);
+app.get("/tumulos", readRoutes.getTumuloByStatus);
+app.get("/tumulo/:id_tumulo", readRoutes.getTumuloById);
+
 
 // Rotas de INSERÇÃO
 app.post("/titular", insertRoutes.createTitular);
