@@ -1,52 +1,39 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
-
-
-/**
- * GET /titular/:cpf
- * retorna todos os campos do registro da tabela Titular cujo CPF = :cpf
- */
-const getTitularByCpf = async (req, res) => {
-  const { cpf } = req.params; // coletando o parâmetro :cpf da url
-  
-  try {
-    const titular = await prisma.titular.findUnique({
-      where: { cpf },
-    });
-
-    // Caso ele não encontre nada, retorna 404:
-    if (!titular) {
-      return res.status(404).json({ error: "Titular não encontrado" });
+const getTitulares = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query("SELECT * FROM titular");
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao consultar usuários" });
     }
+  };
+}
 
-    res.json(titular);
+const getTumuloPorId = (db) => {
+  return async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await db.query(
+        "SELECT * FROM tumulo WHERE id_tumulo = $1",
+        [id]
+      );
 
-  // Erros
-  } catch (error) {
-    console.error("Erro ao buscar titular:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
-  }
-};
+      if (!result.rows[0]) {
+        return res.status(404).json({ error: "Túmulo não encontrado" });
+      }
 
-/**
- * GET /titulares
- * retorna todos os registros da tabela Titular
- */
-const getAllTitulares = async (req, res) => {
-  try {
-    const titulares = await prisma.titular.findMany();
+      return res.json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar túmulo" });
+    }
+  };
+}
 
-    res.json(titulares);
+export default {
 
-  // Erros
-  } catch (error) {
-    console.error("Erro ao buscar titulares:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
-  }
-};
-
-
-export default  {
-  getTitularByCpf,
-  getAllTitulares
+  getTitulares,
+  
+  getTumuloPorId
 };
