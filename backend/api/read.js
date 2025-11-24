@@ -38,11 +38,11 @@ const getTumulos = (db) => {
 //-------------------------------------------------------------------------//
 const getTumuloPorId = (db) => {
   return async (req, res) => {
+    const { id_tumulo } = req.params;
     try {
       const { id } = req.params;
       const result = await db.query(
-        "SELECT * FROM tumulo WHERE id_tumulo = $1",
-        [id]
+        `SELECT * FROM tumulo WHERE id_tumulo = ${id_tumulo}`
       );
 
       if (!result.rows[0]) {
