@@ -16,32 +16,14 @@ versão ideal do prisma e prisma-client: 5.0.0
 ### 1. **Crie o banco de dados no PostgreSQL**
 - Crie um servidor no PgAdmin e copie em ordem o SQL dos arquivos na pasta /sql 
 
-### 2.0 **Vá para a pasta do backend no terminal:**
-```bash
-cd .\backend\
-```
-
 ### 2. **Instale as dependências**
 ```bash
-npm install
-npm install prisma@5 @prisma/client@5
-```
-
-### 3.0 **Conecte o Prisma com o nosso banco de dados no Postgre**
-Caso o comando abaixo não funcione, busque corrigir na sua máquina a versão do DATBASE_URL no arquivo .env
-```bash
-npx prisma db pull
-```
-
-
-### 3. **Gere o Prisma Client**
-```bash
-npx prisma generate
+npm install express pg
 ```
 
 ### 4. **Execute o servidor**
 ```bash
-npm run dev
+node backend/index.js
 ```
 
 ### 5. **Teste a API**

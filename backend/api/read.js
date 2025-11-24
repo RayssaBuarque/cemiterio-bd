@@ -1,3 +1,9 @@
+
+//-------------------------------------------------------------------------//
+//                               TITULARES                                 //
+//-_______________________________________________________________________-//
+// Retorna todos os registros da tabela Titular                            //
+//-------------------------------------------------------------------------//
 const getTitulares = (db) => {
   return async (req, res) => {
     try {
@@ -10,6 +16,26 @@ const getTitulares = (db) => {
   };
 }
 
+//-------------------------------------------------------------------------//
+//                                TÚMULOS                                  //
+//-_______________________________________________________________________-//
+// Lista todos os registros da tabela Tumulo                               //
+//-------------------------------------------------------------------------//
+const getTumulos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query("SELECT * FROM tumulo");
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao consultar túmulos" });
+    }
+  };
+}
+
+//-------------------------------------------------------------------------//
+// Retorna um túmulo cujo id = :id_tumulo                                  //
+//-------------------------------------------------------------------------//
 const getTumuloPorId = (db) => {
   return async (req, res) => {
     try {
@@ -35,5 +61,6 @@ export default {
 
   getTitulares,
   
+  getTumulos,
   getTumuloPorId
 };
