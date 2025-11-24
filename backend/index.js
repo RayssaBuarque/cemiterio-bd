@@ -15,6 +15,9 @@ const PORT = process.env.PORT || 3000;
 
 
 // Rotas de LEITURA
+app.get("/contratos", readRoutes.getContratos(db));
+app.get("/contrato/cpf/:cpf", readRoutes.getContratoPorCpf(db));
+
 app.get("/titulares", readRoutes.getTitulares(db));
 app.get("/tumulo/:id_tumulo", readRoutes.getTumuloPorId(db));
 
