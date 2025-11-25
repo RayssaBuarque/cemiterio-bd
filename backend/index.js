@@ -46,6 +46,7 @@ app.post("/contrato", createRoutes.createContrato(db));
 app.post("/cremacao", createRoutes.createCremacao(db));
 app.post("/velorio", createRoutes.createVelorio(db));
 app.post("/sepultamento", createRoutes.createSepultamento(db));
+app.post("/falecido", createRoutes.createFalecido(db));
 app.post("/fornecedor", createRoutes.createFornecedor(db));
 app.post("/funcionario", createRoutes.createFuncionario(db));
 app.post("/titular", createRoutes.createTitular(db));

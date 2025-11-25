@@ -33,6 +33,40 @@ const createTitular = (db) => {
 };
 
 //-------------------------------------------------------------------------//
+//                                FALECIDO                                  //
+//-_______________________________________________________________________-//
+const createFalecido = (db) => {
+  return async (req, res) => {
+    const { cpf, nome, data_falecimento, data_nascimento, motivo, id_tumulo } = req.body;
+
+    try {
+      if (!cpf || !nome || !id_tumulo) {
+        return res.status(400).json({ error: "CPF, nome e id_tumulo são obrigatórios" });
+      }
+
+      const query = `
+        INSERT INTO falecido (cpf, nome, data_falecimento, data_nascimento, motivo, id_tumulo)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
+      `;
+
+      const values = [cpf, nome, data_falecimento, data_nascimento, motivo, id_tumulo];
+
+      const result = await db.query(query, values);
+
+      return res.status(201).json({
+        message: "Falecido criado com sucesso",
+        titular: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar falecido:\n ${error.message} ` });
+    }
+  };
+};
+
+//-------------------------------------------------------------------------//
 //                                CONTRATO                                 //
 //-_______________________________________________________________________-//
 const createContrato = (db) => {
@@ -185,10 +219,10 @@ const createFuncionario = (db) => {
 //-_______________________________________________________________________-//
 const createCremacao = (db) => {
   return async (req, res) => {
-    const { forno, cpf, nome, lugar, dia, horario, valor } = req.body;
+    const { forno, cpf, nome, lugar, dia, horario, valor, cpf_funcionario } = req.body;
 
     try {
-      if (!cpf || !nome) {
+      if (!cpf || !nome || !cpf_funcionario) {
         return res.status(400).json({ error: "CPF e nome são obrigatórios" });
       }
 
@@ -213,8 +247,13 @@ const createCremacao = (db) => {
         INSERT INTO evento_cremacao (id_evento, forno)
         VALUES ($1, $2)
       `;
-
       await db.query(insertCremacaoQuery, [id_evento, forno]);
+
+      const insertFuncEvenQuery = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertFuncEvenQuery, [cpf_funcionario, id_evento]);
 
       // Commit final
       await db.query("COMMIT");
@@ -238,10 +277,10 @@ const createCremacao = (db) => {
 //-_______________________________________________________________________-//
 const createVelorio = (db) => {
   return async (req, res) => {
-    const { sala, cpf, nome, lugar, dia, horario, valor } = req.body;
+    const { sala, cpf, nome, lugar, dia, horario, valor, cpf_funcionario } = req.body;
 
     try {
-      if (!cpf || !nome) {
+      if (!cpf || !nome || !cpf_funcionario) {
         return res.status(400).json({ error: "CPF e nome são obrigatórios" });
       }
 
@@ -266,8 +305,14 @@ const createVelorio = (db) => {
         INSERT INTO evento_velorio (id_evento, sala)
         VALUES ($1, $2)
       `;
-
       await db.query(insertCremacaoQuery, [id_evento, sala]);
+
+      const insertFuncEvenQuery = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertFuncEvenQuery, [cpf_funcionario, id_evento]);
+
 
       // Commit final
       await db.query("COMMIT");
@@ -291,11 +336,11 @@ const createVelorio = (db) => {
 //-_______________________________________________________________________-//
 const createSepultamento = (db) => {
   return async (req, res) => {
-    const { local_destino, cpf, nome, lugar, dia, horario, valor } = req.body;
+    const { local_destino, cpf, nome, lugar, dia, horario, valor, cpf_funcionario } = req.body;
 
     try {
-      if (!cpf || !nome) {
-        return res.status(400).json({ error: "CPF e nome são obrigatórios" });
+      if (!cpf || !nome || !cpf_funcionario) {
+        return res.status(400).json({ error: "CPF, nome e cpf_funcionario são obrigatórios" });
       }
 
       // Início da transação
@@ -319,8 +364,13 @@ const createSepultamento = (db) => {
         INSERT INTO evento_sepultamento (id_evento, local_destino)
         VALUES ($1, $2)
       `;
-
       await db.query(insertSepultamentoQuery, [id_evento, local_destino]);
+
+      const insertFuncEvenQuery = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertFuncEvenQuery, [cpf_funcionario, id_evento]);
 
       // Commit final
       await db.query("COMMIT");
@@ -343,9 +393,10 @@ const createSepultamento = (db) => {
 export default {
   createContrato,
   createCremacao,
-  createSepultamento,
+  createFalecido,
   createFornecedor,
   createFuncionario,
+  createSepultamento,
   createTitular,
   createTumulo,
   createVelorio
