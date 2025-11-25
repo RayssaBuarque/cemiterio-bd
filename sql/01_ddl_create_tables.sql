@@ -21,7 +21,8 @@ CREATE TABLE tumulo (
     id_tumulo INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     status VARCHAR(20),
     tipo VARCHAR(30),
-    capacidade INT
+    capacidade INT,
+    atual INT
 );
 
 CREATE TABLE localizacao_tumulo (

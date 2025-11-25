@@ -32,27 +32,32 @@ INSERT INTO titular (CPF, nome, endereco, email, telefone) VALUES
 ('00112233445', 'Laura Mendes', 'Praça T, 456 - Parque 10 - Manaus/AM', 'laura.mendes@email.com', '92999990020');
 
 -- 2. TÚMULOS (20 registros)
-INSERT INTO tumulo (status, tipo, capacidade) VALUES
-( 'Ocupado', 'Túmulo Familiar', 4),
-( 'Livre', 'Gaveta', 1),
-( 'Ocupado', 'Túmulo Duplo', 2),
-( 'Reservado', 'Mausoléu', 6),
-( 'Ocupado', 'Túmulo Simples', 1),
-( 'Livre', 'Túmulo Familiar', 4),
-( 'Ocupado', 'Gaveta', 1),
-( 'Reservado', 'Túmulo Duplo', 2),
-( 'Ocupado', 'Mausoléu', 6),
-( 'Livre', 'Túmulo Simples', 1),
-( 'Ocupado', 'Túmulo Familiar', 4),
-( 'Livre', 'Gaveta', 1),
-( 'Ocupado', 'Túmulo Duplo', 2),
-( 'Reservado', 'Mausoléu', 6),
-( 'Ocupado', 'Túmulo Simples', 1),
-( 'Livre', 'Túmulo Familiar', 4),
-( 'Ocupado', 'Gaveta', 1),
-( 'Reservado', 'Túmulo Duplo', 2),
-( 'Ocupado', 'Mausoléu', 6),
-( 'Livre', 'Túmulo Simples', 1);
+INSERT INTO tumulo (status, tipo, capacidade, atual) VALUES
+( 'Livre', 'Túmulo Familiar', 4, 1),
+( 'Livre', 'Gaveta', 1, 1),
+( 'Livre', 'Túmulo Duplo', 2, 1),
+( 'Livre', 'Mausoléu', 6, 1),
+( 'Livre', 'Túmulo Simples', 1, 1),
+( 'Livre', 'Túmulo Familiar', 4, 1),
+( 'Livre', 'Gaveta', 1, 1),
+( 'Livre', 'Túmulo Duplo', 2, 1),
+( 'Livre', 'Mausoléu', 6, 1),
+( 'Livre', 'Túmulo Simples', 1, 1),
+( 'Livre', 'Túmulo Familiar', 4, 1),
+( 'Livre', 'Gaveta', 1, 1),
+( 'Livre', 'Túmulo Duplo', 2, 1),
+( 'Livre', 'Mausoléu', 6, 1),
+( 'Livre', 'Túmulo Simples', 1, 1),
+( 'Livre', 'Túmulo Familiar', 4, 1),
+( 'Livre', 'Gaveta', 1, 1),
+( 'Livre', 'Túmulo Duplo', 2, 1),
+( 'Livre', 'Mausoléu', 6, 1),
+( 'Livre', 'Túmulo Simples', 1, 0),
+( 'Vazio', 'Túmulo Simples', 1, 0),
+( 'Vazio', 'Túmulo Simples', 1, 0),
+( 'Vazio', 'Túmulo Simples', 1, 0);
+
+
 
 -- 3. LOCALIZAÇÃO_TUMULO (20 registros)
 INSERT INTO localizacao_tumulo (ID_tumulo, quadra, setor, numero) VALUES

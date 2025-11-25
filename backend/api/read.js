@@ -437,7 +437,9 @@ const getTumuloFiltro = (db) => {
       id_tumulo: req.query.id_tumulo,
       status: req.query.status,
       tipo: req.query.tipo,
-      capacidade: req.query.capacidade
+      capacidade: req.query.capacidade,
+      atual: req.query.atual
+      
     };
 
     const { where, values } = construtorDeWhere(filtros);
@@ -670,6 +672,47 @@ const getFornecedorMaisUsado = (db) => {
   };
 };
 
+const getFuncionariosLivres = (db) => {
+  return async (req, res) => {
+    try {
+      const { data, horario } = req.query;
+      
+      if (!data || !horario) {
+        return res.status(400).json({ 
+          error: "Parâmetros 'data' e 'horario' são obrigatórios. Formato: data=YYYY-MM-DD&horario=HH:MM:SS" 
+        });
+      }
+
+      const result = await db.query(`
+        SELECT 
+          f.CPF,
+          f.nome,
+          f.funcao,
+          f.horas_semanais
+        FROM funcionario f
+        WHERE f.CPF NOT IN (
+          SELECT fe.CPF
+          FROM funcionario_evento fe
+          JOIN evento e ON fe.ID_evento = e.ID_evento
+          WHERE e.dia = $1 
+            AND e.horario = $2
+        )
+        ORDER BY f.nome
+      `, [data, horario]);
+
+      return res.json({
+        data_consulta: data,
+        horario_consulta: horario,
+        funcionarios_livres: result.rows,
+        total_livres: result.rows.length
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar funcionários livres" });
+    }
+  };
+};
+
 export default {
   // Contratos
   getContratos,
@@ -693,6 +736,7 @@ export default {
   // Funcionarios
   getFuncionarios,
   getFuncionariosFiltro,
+  getFuncionariosLivres,
 
   // Titulares
   getTitulares,
