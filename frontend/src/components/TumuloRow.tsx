@@ -8,7 +8,7 @@ import Button from "./Button";
 
 interface TumuloRowProps {
     id: number;
-    status: 'Ocupado' | 'Reservado' | 'Livre';
+    status: 'Vazio' | 'Reservado' | 'Cheio';
     tipo: 'Túmulo Familiar' | 'Gaveta' | 'Mausoléu' | 'Túmulo Duplo';
     capacidade: number;
     isEven: boolean;
@@ -87,9 +87,9 @@ const TumuloRow = ({ id, status, tipo, capacidade, isEven, updateList }: TumuloR
                                     <FormGroup>
                                         <StyledLabel htmlFor="status">Status</StyledLabel>
                                         <StyledSelect id="status" defaultValue={status} {...register('status')}>
-                                            <option value="Livre">Livre</option>
+                                            <option value="Vazio">Vazio</option>
                                             <option value="Reservado">Reservado</option>
-                                            <option value="Ocupado">Ocupado</option>
+                                            <option value="Cheio">Cheio</option>
                                         </StyledSelect>
                                     </FormGroup>
                                 </FormRow>

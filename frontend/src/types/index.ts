@@ -22,7 +22,7 @@ export interface ITitularInput {
 // === TÚMULOS ===
 export interface ITumuloInput {
     id_tumulo: number,
-    status: 'Ocupado' | 'Reservado' | 'Livre';
+    status: 'Cheio' | 'Reservado' | 'Vazio';
     tipo: 'Túmulo Familiar' | 'Gaveta' | 'Mausoléu' | 'Túmulo Duplo';
     capacidade: number;
 }

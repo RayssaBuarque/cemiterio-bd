@@ -1,21 +1,20 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../../services/api';
-import { ITumuloInput } from '../types'; // Certifique-se de exportar ITumuloInput no types
+import { IFuncionarioInput } from '../types'; // Certifique-se que o caminho está correto
 
 // components
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import TumuloRow from '../components/TumuloRow'; // Componente que renderiza a linha individual
+import FuncionarioRow from '../components/FuncionarioRow';
 
 import Image from 'next/image';
 
-const Tumulos = () => {
+const Funcionarios = () => {
 
-    // Estado tipado com a interface de Túmulos
-    const [tumulos, setTumulos] = useState<ITumuloInput[]>([])
-    const [filteredTumulos, setFilteredTumulos] = useState<ITumuloInput[]>([])
+    const [funcionarios, setFuncionarios] = useState<IFuncionarioInput[]>([])
+    const [filteredFuncionarios, setFilteredFuncionarios] = useState<IFuncionarioInput[]>([])
     
     const [isOpen, setisOpen] = useState(false)
     const [isLoading, setisLoading] = useState(true)
@@ -25,17 +24,17 @@ const Tumulos = () => {
     const [query, setQuery] = useState('')
     const maxRows = 11;
 
-    const getTumulos = async () => {
+    const getFuncionarios = async () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            const { data } = await api.getTumulos()
+            const { data } = await api.getFuncionarios()
             if (data) {
-                setTumulos(data);
-                setFilteredTumulos(data);
+                setFuncionarios(data);
+                setFilteredFuncionarios(data);
             }
         } catch (error) {
-            console.error("Erro ao buscar túmulos:", error)
+            console.error("Erro ao buscar funcionários:", error)
         } finally {
             setisLoading(false)
         }
@@ -43,94 +42,98 @@ const Tumulos = () => {
 
     // Busca inicial
     useEffect(() => {
-        getTumulos()
+        getFuncionarios()
     }, [])
 
-    // Lógica de Filtro (Busca por ID, Tipo ou Status)
+    // Lógica de Filtro (Busca por Nome, CPF ou Função)
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
-        const filtered = tumulos.filter((tumulo) => 
-            tumulo.id_tumulo.toString().includes(lowerQuery) || 
-            tumulo.tipo.toLowerCase().includes(lowerQuery) ||
-            tumulo.status.toLowerCase().includes(lowerQuery)
+        const filtered = funcionarios.filter((func) => 
+            func.nome.toLowerCase().includes(lowerQuery) || 
+            func.cpf.includes(lowerQuery) ||
+            func.funcao.toLowerCase().includes(lowerQuery)
         );
-        setFilteredTumulos(filtered);
-        setCurrentPage(1); // Reseta para página 1 ao filtrar
-    }, [query, tumulos])
+        setFilteredFuncionarios(filtered);
+        setCurrentPage(1);
+    }, [query, funcionarios])
 
     // Lógica de Paginação
-    const totalPages = Math.ceil(filteredTumulos.length / maxRows)
-    const currentTumulos = filteredTumulos.slice(
+    const totalPages = Math.ceil(filteredFuncionarios.length / maxRows)
+    const currentFuncionarios = filteredFuncionarios.slice(
         (currentPage - 1) * maxRows,
         currentPage * maxRows
     )
 
     return (
         <>
-            <SideBar name={"Túmulos"} />
-            <TumulosContainer>
-                <TumulosTitle>
-                    <h5>Túmulos</h5>
+            <SideBar name={"Funcionários"} />
+            <FuncionariosContainer>
+                <FuncionariosTitle>
+                    <h5>Funcionários</h5>
 
-                    <TumulosInteractions>
-                        <TumulosFilter>
+                    <FuncionariosInteractions>
+                        <FuncionariosFilter>
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar por ID, tipo ou status..."
+                                placeholder="Buscar por nome, CPF ou função..."
                             />
-                            <Button onClick={() => getTumulos()}>Atualizar</Button>
-                        </TumulosFilter>
+                            <Button onClick={() => getFuncionarios()}>Atualizar</Button>
+                        </FuncionariosFilter>
                         <span />
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
 
-                    </TumulosInteractions>
+                    </FuncionariosInteractions>
 
-                </TumulosTitle>
+                </FuncionariosTitle>
 
-                {/* Cabeçalho da Tabela */}
-                <TumulosGrid>
-                    <label>ID</label>
-                    <label>Tipo</label>
-                    <label>Status</label>
-                    <label>Capacidade</label>
-                </TumulosGrid>
+                {/* Cabeçalho da Tabela - Adaptado para 6 colunas */}
+                <FuncionariosGrid>
+                    <label>CPF</label>
+                    <label>Nome</label>
+                    <label>Função</label>
+                    <label>Modelo</label>
+                    <label>Hrs</label>
+                    <label>Salário</label>
+                </FuncionariosGrid>
 
-                <TumulosWrapper>
+                <FuncionariosWrapper>
                     {!isLoading &&
-                        currentTumulos.map((tumulo, index) => {
+                        currentFuncionarios.map((func, index) => {
                             return (
-                                <TumuloRow
-                                    key={tumulo.id_tumulo}
+                                <FuncionarioRow
+                                    key={func.cpf}
                                     isEven={index % 2 === 0}
-                                    id={tumulo.id_tumulo}
-                                    tipo={tumulo.tipo}
-                                    status={tumulo.status}
-                                    capacidade={tumulo.capacidade}
-                                    updateList={getTumulos} 
+                                    cpf={func.cpf}
+                                    nome={func.nome}
+                                    funcao={func.funcao}
+                                    modelo_contrato={func.modelo_contrato}
+                                    horas_semanais={func.horas_semanais}
+                                    salario={func.salario}
+                                    updateList={getFuncionarios} 
                                 />
                             )
                         })
                     }
 
-                    {!isLoading && filteredTumulos.length === 0 &&
-                        <p className='allRow noTumulos'>Nenhum túmulo encontrado :(</p>
+                    {!isLoading && filteredFuncionarios.length === 0 &&
+                        <p className='allRow noFuncionarios'>Nenhum funcionário encontrado :(</p>
                     }
 
                     {isLoading &&
                         <div className="allRow">
-                        
-                         </div>
+                 
+                        </div>
                     }
 
-                </TumulosWrapper>
+                </FuncionariosWrapper>
 
-                <TumulosFooter>
-                    <p>{filteredTumulos.length} túmulos encontrados</p>
-                    {!isLoading && filteredTumulos.length > 0 &&
+                <FuncionariosFooter>
+                    <p>{filteredFuncionarios.length} funcionários encontrados</p>
+                    {!isLoading && filteredFuncionarios.length > 0 &&
                         <Pagination>
                             <Button
                                 className={currentPage === 1 ? 'noInteraction' : ''}
@@ -151,19 +154,19 @@ const Tumulos = () => {
                             >{">"}</Button>
                         </Pagination>
                     }
-                </TumulosFooter>
-            </TumulosContainer>
+                </FuncionariosFooter>
+            </FuncionariosContainer>
         </>
     )
 }
 
-export default Tumulos;
+export default Funcionarios;
 
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
 
-const TumulosContainer = styled.div`
+const FuncionariosContainer = styled.div`
     padding: 1.5rem;
     width: 100%;
     height: 100%;
@@ -178,7 +181,7 @@ const TumulosContainer = styled.div`
     }
 `
 
-const TumulosTitle = styled.div`
+const FuncionariosTitle = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -186,7 +189,7 @@ const TumulosTitle = styled.div`
     margin-bottom: 1.5rem;
 `
 
-const TumulosFilter = styled.div`
+const FuncionariosFilter = styled.div`
     display: flex;
     gap: 0.5rem;
     width: 100%;
@@ -219,7 +222,7 @@ const TumulosFilter = styled.div`
     }
 `
 
-const TumulosInteractions = styled.div`
+const FuncionariosInteractions = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
@@ -236,16 +239,16 @@ const TumulosInteractions = styled.div`
     }
 `
 
-// GRID DEFINITION: Adaptado para 4 colunas (ID, Tipo, Status, Capacidade)
-// Layout: ID (pequeno), Tipo (flex), Status (médio), Capacidade (pequeno)
-const TumulosGrid = styled.div`
+// GRID DEFINITION: 6 colunas
+// CPF (pequeno) | Nome (flex) | Função (médio) | Modelo (pequeno) | Hrs (mini) | Salário (pequeno)
+const FuncionariosGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* ID | Tipo | Status | Capacidade */
-    grid-template-columns: 0.5fr 2fr 1fr 1fr; 
-    grid-column-gap: 1.5rem;
+    /* CPF | Nome | Função | Modelo | Hrs | Salário */
+    grid-template-columns: 0.8fr 2fr 1.2fr 1fr 0.5fr 0.8fr; 
+    grid-column-gap: 1rem;
     align-items: center;
     margin-bottom: 0.75rem;
 
@@ -257,7 +260,7 @@ const TumulosGrid = styled.div`
     }
 `
 
-const TumulosWrapper = styled.div`
+const FuncionariosWrapper = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -266,7 +269,7 @@ const TumulosWrapper = styled.div`
     border-bottom: 1px solid var(--outline-neutrals-secondary);
     min-height: 200px;
 
-    .noTumulos{
+    .noFuncionarios{
         text-align: center;
         font: 700 1.125rem/1.5rem 'At Aero Bold';
         margin-top: 2rem;
@@ -281,7 +284,7 @@ const TumulosWrapper = styled.div`
     }
 `
 
-const TumulosFooter = styled.footer`
+const FuncionariosFooter = styled.footer`
     width: 100%;
     display: flex;
     justify-content: space-between;
