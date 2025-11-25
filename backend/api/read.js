@@ -801,6 +801,163 @@ const getFornecedorMelhorPreco = (db) => {
   };
 };
 
+const getContratosAtivos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT COUNT(*) AS active_contracts
+        FROM contrato 
+        WHERE status = 'Ativo'
+      `);
+      
+      return res.json({
+        active_contracts: parseInt(result.rows[0].active_contracts)
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar contratos ativos" });
+    }
+  };
+};
+
+const getFaturamentoDoMes = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          COALESCE(SUM(c.valor), 0) AS monthly_revenue
+        FROM contrato c
+        WHERE EXTRACT(YEAR FROM c.data_inicio) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND EXTRACT(MONTH FROM c.data_inicio) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND c.status = 'Ativo'
+      `);
+      
+      return res.json({
+        monthly_revenue: parseFloat(result.rows[0].monthly_revenue)
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular receita mensal" });
+    }
+  };
+};
+
+const getEventosProximos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT COUNT(*) AS upcoming_events
+        FROM evento 
+        WHERE dia BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
+      `);
+      
+      return res.json({
+        upcoming_events: parseInt(result.rows[0].upcoming_events)
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar eventos futuros" });
+    }
+  };
+};
+
+const getFaturamentoComparativo = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        WITH monthly_revenue AS (
+          SELECT 
+            EXTRACT(YEAR FROM data_inicio) AS year,
+            EXTRACT(MONTH FROM data_inicio) AS month,
+            SUM(valor) AS revenue
+          FROM contrato
+          WHERE EXTRACT(YEAR FROM data_inicio) = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND status = 'Ativo'
+          GROUP BY EXTRACT(YEAR FROM data_inicio), EXTRACT(MONTH FROM data_inicio)
+          ORDER BY year, month
+        )
+        SELECT 
+          (SELECT revenue FROM monthly_revenue 
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)) AS current_month,
+          (SELECT revenue FROM monthly_revenue 
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE) - 1) AS previous_month,
+          (SELECT revenue FROM monthly_revenue 
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE) - 2) AS two_months_ago
+      `);
+      
+      const row = result.rows[0];
+      const current = parseFloat(row.current_month) || 0;
+      const previous = parseFloat(row.previous_month) || 0;
+      const twoMonthsAgo = parseFloat(row.two_months_ago) || 0;
+      
+      const growthVsPrevious = previous !== 0 ? ((current - previous) / previous) * 100 : 0;
+      const growthVsTwoMonths = twoMonthsAgo !== 0 ? ((current - twoMonthsAgo) / twoMonthsAgo) * 100 : 0;
+
+      return res.json({
+        current_month_revenue: current,
+        previous_month_revenue: previous,
+        two_months_ago_revenue: twoMonthsAgo,
+        growth_vs_previous: parseFloat(growthVsPrevious.toFixed(2)),
+        growth_vs_two_months: parseFloat(growthVsTwoMonths.toFixed(2))
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular tendência de receita" });
+    }
+  };
+};
+
+const getFaturamentoMensalDoAno = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        WITH meses AS (
+          SELECT generate_series(
+            '2025-01-01'::date,
+            CURRENT_DATE,
+            '1 month'::interval
+          ) AS mes
+        )
+        SELECT 
+          TO_CHAR(m.mes, 'YYYY-MM') AS mes_ano,
+          TO_CHAR(m.mes, 'Month') AS mes_nome,
+          EXTRACT(MONTH FROM m.mes) AS mes_numero,
+          COALESCE(c.total_contratos, 0) AS total_contratos,
+          COALESCE(c.faturamento_total, 0) AS faturamento_total
+        FROM meses m
+        LEFT JOIN (
+          SELECT 
+            TO_CHAR(data_inicio, 'YYYY-MM') AS mes_ano,
+            COUNT(*) AS total_contratos,
+            SUM(valor) AS faturamento_total
+          FROM contrato
+          WHERE EXTRACT(YEAR FROM data_inicio) = 2025
+            AND status = 'Ativo'
+          GROUP BY TO_CHAR(data_inicio, 'YYYY-MM')
+        ) c ON TO_CHAR(m.mes, 'YYYY-MM') = c.mes_ano
+        ORDER BY m.mes
+      `);
+
+      return res.json({
+        message: "Faturamento mensal de 2025",
+        dados: mesesCompletos.rows,
+        total_geral: {
+          contratos: mesesCompletos.rows.reduce((sum, item) => sum + parseInt(item.total_contratos), 0),
+          faturamento: mesesCompletos.rows.reduce((sum, item) => sum + parseFloat(item.faturamento_total), 0)
+        }
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular faturamento mensal" });
+    }
+  };
+};
+
 export default {
   // Contratos
   getContratos,
@@ -840,8 +997,16 @@ export default {
   getCompras,
   getFornecedorMelhorPreco,
 
-  //Avancados
+  //dasboard
   getContratosAVencer,
+  getContratosAtivos,
+  getFaturamentoDoMes,
+  getEventosProximos,
+  getFaturamentoComparativo,
+  getFaturamentoMensalDoAno,
+
+
+  //Avancados
   getCustoTotalEventos,
   getFuncionariosMaisTrabalhadores,
   getTumulosMaisOcupados,

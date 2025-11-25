@@ -51,7 +51,6 @@ app.get("/compra", readRoutes.getCompras(db));
 app.get("/fornecedorMelhorPreco", readRoutes.getFornecedorMelhorPreco(db))
 
 
-app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
 app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));
 app.get("/maisTrabalhadores", readRoutes.getFuncionariosMaisTrabalhadores(db));
 app.get("/tumulosMaisOcupados", readRoutes.getTumulosMaisOcupados(db));
@@ -60,7 +59,16 @@ app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorGastos(db));
 app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
 app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
 app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
+
+//dashboard
 app.get("/taxaOcupacao", readRoutes.getTaxaOcupacao(db));
+app.get("/contratosAtivos", readRoutes.getContratosAtivos(db));
+app.get("/faturamentoDoMes", readRoutes.getFaturamentoDoMes(db));
+app.get("/eventosProximos", readRoutes.getEventosProximos(db));
+app.get("/faturamentoComparativo", readRoutes.getFaturamentoComparativo(db));
+app.get("/faturamentoNoAno", readRoutes.getFaturamentoComparativo(db));
+app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
+
 
 
 
