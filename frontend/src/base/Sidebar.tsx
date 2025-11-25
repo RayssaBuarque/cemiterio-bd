@@ -92,6 +92,7 @@ const SideBar = (props: SideBarProps) => {
                             <Link legacyBehavior href="/"><a>Dashboard</a></Link>
                         </motion.li>
 
+
                         <motion.li variants={itemVariants} className={router.pathname == '/titulares' ? 'active' : ''}>
                             <Link legacyBehavior href="/titulares"><a>Titulares</a></Link>
                         </motion.li>
@@ -114,9 +115,16 @@ const SideBar = (props: SideBarProps) => {
                             <Link legacyBehavior href="/eventos"><a>Eventos</a></Link>
                         </motion.li>
 
-                        <motion.li variants={itemVariants} className={router.pathname == '/fornecedores' ? 'active' : ''}>
-                            <Link legacyBehavior href="/fornecedores"><a>Fornecedores</a></Link>
-                        </motion.li>
+
+                        <Accordion title = "Fornecedores">
+                            <motion.li variants={itemVariants} className={router.pathname == '/fornecedores' ? 'active' : ''}>
+                                <Link legacyBehavior href="/fornecedores"><a>Info. Fornecedores</a></Link>
+                            </motion.li>
+
+                            <motion.li variants={itemVariants} className={router.pathname == '/compras' ? 'active' : ''}>
+                                <Link legacyBehavior href="/compras"><a>Compras</a></Link>
+                            </motion.li>
+                        </Accordion>
 
                         <motion.li variants={itemVariants} className={router.pathname == '/contratos' ? 'active' : ''}>
                             <Link legacyBehavior href="/contratos"><a>Contratos</a></Link>
