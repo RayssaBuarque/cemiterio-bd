@@ -453,6 +453,55 @@ const getTumuloPorId = (db) => {
   };
 }
 
+const getTumulosPorCpf = (db) => {
+  return async (req, res) => {
+    try {
+      const { cpf } = req.params;
+      
+      if (!cpf || cpf.length < 11) {
+        return res.status(400).json({ error: "CPF inválido" });
+      }
+
+      const result = await db.query(
+        `SELECT 
+          t.id_tumulo,
+          t.tipo AS tipo_tumulo,
+          t.status AS status_tumulo,
+          t.capacidade,
+          lt.quadra,
+          lt.setor,
+          lt.numero,
+          tit.nome AS titular_nome,
+          tit.email AS titular_email,
+          tit.telefone AS titular_telefone
+        FROM contrato c
+        JOIN tumulo t ON c.id_tumulo = t.id_tumulo
+        JOIN localizacao_tumulo lt ON t.id_tumulo = lt.id_tumulo
+        JOIN titular tit ON c.cpf = tit.cpf
+        WHERE c.cpf = $1
+        ORDER BY c.data_inicio DESC`,
+        [cpf]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ 
+          error: "Nenhum túmulo encontrado para este CPF",
+          cpf: cpf
+        });
+      }
+
+      return res.json(result.rows);
+
+
+    } catch (err) {
+      console.error("Erro:", err);
+      return res.status(500).json({ 
+        error: "Erro ao buscar túmulos por CPF",
+        detalhes: err.message 
+      });
+    }
+  };
+};
 //-------------------------------------------------------------------------//
 // Retorna uma lista de túmulos com base em um filtro                      //
 //-------------------------------------------------------------------------//
@@ -999,6 +1048,7 @@ export default {
   getTumulos,
   getTumuloPorId,
   getTumuloFiltro,
+  getTumulosPorCpf,
 
   //compras
   getCompras,
