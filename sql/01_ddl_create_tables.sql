@@ -64,7 +64,7 @@ CREATE TABLE evento (
     dia DATE,
     horario TIME,
     valor NUMERIC(10,2)
-	FOREIGN KEY (CPF) REFERENCES falecido(CPF),
+	FOREIGN KEY (CPF) REFERENCES titular(CPF),
 	FOREIGN KEY (nome) REFERENCES falecido(nome)
 );
 
