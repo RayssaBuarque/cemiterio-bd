@@ -37,25 +37,8 @@ const FalecidoRow = ({ cpf, nome, data_nascimento, data_falecimento, motivo, id_
 
     const formatCPF = (cpf: string | undefined) => {
         if (!cpf) return '';
-        // Remove tudo que não é dígito
         const cleaned = cpf.replace(/\D/g, '');
-        // Aplica a máscara XXX.XXX.XXX-XX
         return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-
-    const formatPhone = (phone: string | undefined) => {
-        if (!phone) return '';
-        // Remove tudo que não é dígito
-        const cleaned = phone.replace(/\D/g, '');
-        
-        // Verifica se tem 11 dígitos (celular com DDD) ou 10 (fixo com DDD)
-        if (cleaned.length === 11) {
-            return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-        } else if (cleaned.length === 10) {
-            return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-        }
-        
-        return phone;
     }
 
     const handleDelete = async () => {
@@ -96,13 +79,15 @@ const FalecidoRow = ({ cpf, nome, data_nascimento, data_falecimento, motivo, id_
                                     />
                                 </FormGroup>
 
-                                {/* Linha 2: Vínculos (Titular e Túmulo) */}
+                                {/* Linha 2: Vínculos (Bloqueados para edição) */}
                                 <FormRow $columns="1fr 1fr">
                                     <FormGroup>
                                         <StyledLabel htmlFor="cpf">CPF do Titular Responsável</StyledLabel>
                                         <StyledInput 
                                             id="cpf" 
                                             defaultValue={cpf}
+                                            readOnly
+                                            style={{ opacity: 0.7, cursor: 'not-allowed', fontWeight: 'bold' }}
                                             {...register('cpf', { required: true })}
                                             placeholder="Apenas números"
                                         />
@@ -113,6 +98,8 @@ const FalecidoRow = ({ cpf, nome, data_nascimento, data_falecimento, motivo, id_
                                             id="id_tumulo" 
                                             type="number"
                                             defaultValue={id_tumulo}
+                                            readOnly
+                                            style={{ opacity: 0.7, cursor: 'not-allowed', fontWeight: 'bold' }}
                                             {...register('id_tumulo', { required: true })}
                                         />
                                     </FormGroup>
@@ -165,7 +152,7 @@ const FalecidoRow = ({ cpf, nome, data_nascimento, data_falecimento, motivo, id_
             </ModalOverlay>
         }
 
-        {/* Linha da Tabela - Deve bater com FalecidosGrid */}
+        {/* Linha da Tabela */}
         <RowWrapper onClick={() => setisModalOpen(true)} $isEven={isEven}>
             <p title={nome}>{nome}</p>
             <p title={cpf}>{formatCPF(cpf)}</p>

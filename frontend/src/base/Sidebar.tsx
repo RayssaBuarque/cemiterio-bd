@@ -105,7 +105,7 @@ const SideBar = (props: SideBarProps) => {
                             <Link legacyBehavior href="/tumulos"><a>Túmulos</a></Link>
                         </motion.li>
 
-                        <motion.div variants={itemVariants} style={{ width: '100%' }}>
+                        <motion.div variants={itemVariants}>
                             <li className={router.pathname == '/funcionarios' ? 'active' : ''}>
                                 <Link legacyBehavior href="/funcionarios"><a>Funcionários</a></Link>
                             </li>  
