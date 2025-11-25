@@ -3,7 +3,7 @@ import styled from "styled-components";
 const Button = styled.button`
     --padding: 0.75rem 1.5rem;
     --transition-duration: 0.15s;
-    --background: var(--brand-primary);
+    --background: var(--background-neutrals-inverse);
 
     display: flex;
     align-items: center;
@@ -18,7 +18,7 @@ const Button = styled.button`
     transition: var(--transition-duration);
     white-space: nowrap;
     text-align: center;
-    color: var(--content-neutrals-fixed-white);
+    color: var(--content-neutrals-inverse);
 
     background-image: linear-gradient(var(--background-neutrals-inverse), var(--background-neutrals-inverse)); /* Coloca um background branco em cima do botão */
     background-size: 200%;                                                              /* faz o background-position com porcentagem funcionar */

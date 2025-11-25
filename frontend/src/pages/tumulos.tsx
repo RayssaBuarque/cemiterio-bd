@@ -303,7 +303,6 @@ const Pagination = styled.div`
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 4px;
     }
     .noInteraction{
         color: var(--content-neutrals-primary);

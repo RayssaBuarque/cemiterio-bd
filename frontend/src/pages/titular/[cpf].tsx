@@ -91,6 +91,30 @@ const TitularView = () => {
         return dateString;
     }
 
+
+    const formatCPF = (cpf: string | undefined) => {
+        if (!cpf) return '';
+        // Remove tudo que não é dígito
+        const cleaned = cpf.replace(/\D/g, '');
+        // Aplica a máscara XXX.XXX.XXX-XX
+        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    const formatPhone = (phone: string | undefined) => {
+        if (!phone) return '';
+        // Remove tudo que não é dígito
+        const cleaned = phone.replace(/\D/g, '');
+        
+        // Verifica se tem 11 dígitos (celular com DDD) ou 10 (fixo com DDD)
+        if (cleaned.length === 11) {
+            return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        } else if (cleaned.length === 10) {
+            return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+        }
+        
+        return phone;
+    }
+
     if (!titularData && !isLoading) return <p>Titular não encontrado.</p>;
 
     return(
@@ -101,8 +125,8 @@ const TitularView = () => {
             <TitularHeader>
                 <TitularData>
                     <h5>{titularData?.nome}</h5>
-                    <p>CPF: {titularData?.cpf}</p>
-                    <p>Telefone: {titularData?.telefone}</p>
+                    <p>CPF: {formatCPF(titularData?.cpf)}</p>
+                    <p>Telefone: {formatPhone(titularData?.telefone)}</p>
                     <p>Endereço: {titularData?.endereco}</p>
                 </TitularData>
                 

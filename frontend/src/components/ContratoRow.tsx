@@ -26,6 +26,14 @@ const ContratoRow = ({ cpf, id_tumulo, data_inicio, valor, prazo_vigencia, statu
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
     }
 
+    const formatCPF = (cpf: string | undefined) => {
+        if (!cpf) return '';
+        // Remove tudo que não é dígito
+        const cleaned = cpf.replace(/\D/g, '');
+        // Aplica a máscara XXX.XXX.XXX-XX
+        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
     const handleUpdate = async (data: IContrato) => {
         try {
             console.log("Atualizando contrato:", data);
@@ -140,7 +148,7 @@ const ContratoRow = ({ cpf, id_tumulo, data_inicio, valor, prazo_vigencia, statu
         {/* Linha da Tabela */}
         <RowWrapper onClick={() => setisModalOpen(true)} $isEven={isEven}>
             {/* Destaque para CPF */}
-            <p className="highlight" title={cpf}>{cpf}</p>
+            <p className="highlight" title={cpf}>{formatCPF(cpf)}</p>
             
             {/* Destaque para Túmulo */}
             <p className="highlight" title={`Túmulo #${id_tumulo}`}>#{id_tumulo}</p>

@@ -41,6 +41,14 @@ const Titulares = () => {
         }
     }
 
+    const formatCPF = (cpf: string | undefined) => {
+        if (!cpf) return '';
+        // Remove tudo que não é dígito
+        const cleaned = cpf.replace(/\D/g, '');
+        // Aplica a máscara XXX.XXX.XXX-XX
+        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
     const totalPages = Math.ceil(filteredTitulares.length / maxRows)
     const currentTitulares = filteredTitulares.slice(
         (currentPage - 1) * maxRows,

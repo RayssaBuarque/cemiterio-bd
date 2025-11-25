@@ -47,6 +47,15 @@ const FuncionarioRow = ({ cpf, nome, funcao, modelo_contrato, horas_semanais, sa
         }
     }
 
+    const formatCPF = (cpf: string | undefined) => {
+        if (!cpf) return '';
+        // Remove tudo que não é dígito
+        const cleaned = cpf.replace(/\D/g, '');
+        // Aplica a máscara XXX.XXX.XXX-XX
+        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+
     return (
         <>
         {isModalOpen &&
@@ -144,7 +153,7 @@ const FuncionarioRow = ({ cpf, nome, funcao, modelo_contrato, horas_semanais, sa
 
         {/* Linha da Tabela - Deve bater com FuncionariosGrid */}
         <FuncionarioWrapper onClick={() => setisModalOpen(true)} $isEven={isEven}>
-            <p title={cpf}>{cpf}</p>
+            <p title={cpf}>{formatCPF(cpf)}</p>
             <p title={nome}>{nome}</p>
             <p title={funcao}>{funcao}</p>
             <p>{modelo_contrato}</p>
