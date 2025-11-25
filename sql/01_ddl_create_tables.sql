@@ -58,7 +58,7 @@ CREATE TABLE falecido ( ------------
 );
 
 CREATE TABLE evento (
-    ID_evento SERIAL PRIMARY KEY,
+    ID_evento INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     CPF CHAR(11),
     nome VARCHAR(100) NOT NULL,
     lugar VARCHAR(100),
