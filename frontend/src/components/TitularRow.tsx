@@ -295,7 +295,7 @@ const TitularWrapper = styled.div<{ $isEven: boolean }>`
     }
     
     p {
-        font: 400 1rem/1.5rem 'At Aero';
+        font: 400 1rem/1.5rem 'AT Aero';
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

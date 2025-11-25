@@ -7,7 +7,7 @@ import { ITitularInput } from '../types'; // Certifique-se que o caminho está c
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import TitularRow from '@/components/PalestranteRow';
+import TitularRow from '@/components/TitularRow';
 
 import Image from 'next/image';
 
