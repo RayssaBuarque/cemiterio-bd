@@ -744,6 +744,45 @@ const getCompras = (db) => {
   };
 }
 
+const getFornecedorMelhorPreco = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        WITH media_precos AS (
+          SELECT 
+            c.item,
+            f.CNPJ,
+            f.nome AS nome_fornecedor,
+            AVG(c.valor) AS media_preco,
+            COUNT(*) AS total_compras,
+            ROW_NUMBER() OVER (PARTITION BY c.item ORDER BY AVG(c.valor) ASC) AS ranking
+          FROM compra c
+          JOIN fornecedor f ON c.CNPJ = f.CNPJ
+          WHERE c.item IS NOT NULL
+          GROUP BY c.item, f.CNPJ, f.nome
+        )
+        SELECT 
+          item,
+          CNPJ,
+          nome_fornecedor,
+          ROUND(media_preco::numeric, 2) AS media_preco,
+          total_compras
+        FROM media_precos
+        WHERE ranking = 1
+        ORDER BY item;
+      `);
+
+      return res.json({
+        message: "Fornecedores com melhores preços por item",
+        dados: result.rows
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar fornecedores com melhores preços" });
+    }
+  };
+};
 
 export default {
   // Contratos
@@ -782,6 +821,7 @@ export default {
 
   //compras
   getCompras,
+  getFornecedorMelhorPreco,
 
   //Avancados
   getContratosAVencer,

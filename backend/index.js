@@ -48,6 +48,7 @@ app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
 app.get("/evento/:id_evento", readRoutes.getEventoPorId(db));
 
 app.get("/compra", readRoutes.getCompras(db));
+app.get("/fornecedorMelhorPreco", readRoutes.getFornecedorMelhorPreco(db))
 
 
 app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
