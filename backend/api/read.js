@@ -336,6 +336,26 @@ const getFuncionariosFiltro = (db) => {
   };
 };
 
+const getFuncionarioPorIdEvento = (db) => {
+  return async (req, res) => {
+    try {
+      const { id_evento } = req.params;
+      const result = await db.query(
+        `SELECT * FROM funcionario_evento WHERE id_evento = ${id_evento}`
+      );
+
+      if (!result.rows[0]) {
+        return res.status(404).json({ error: "Funcionario por id_evento não encontrado" });
+      }
+
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar evento por id_evento" });
+    }
+  };
+}
+
 //-------------------------------------------------------------------------//
 //                               TITULARES                                 //
 //-_______________________________________________________________________-//
@@ -736,6 +756,7 @@ export default {
   getFuncionarios,
   getFuncionariosFiltro,
   getFuncionariosLivres,
+  getFuncionarioPorIdEvento,
 
   // Titulares
   getTitulares,

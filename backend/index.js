@@ -41,6 +41,7 @@ app.get("/fornecedor/filtro", readRoutes.getFornecedoresFiltro(db))
 app.get("/funcionario", readRoutes.getFuncionarios(db))
 app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
 app.get("/funcionarioLivre", readRoutes.getFuncionariosLivres(db))
+app.get("/funcionario/:id_evento", readRoutes.getFuncionarioPorIdEvento(db));
 
 
 app.get("/evento", readRoutes.getEventos(db));
