@@ -732,6 +732,19 @@ const getFuncionariosLivres = (db) => {
   };
 };
 
+const getCompras = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query("SELECT * FROM compra");
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao consultar todas as compras" });
+    }
+  };
+}
+
+
 export default {
   // Contratos
   getContratos,
@@ -766,6 +779,9 @@ export default {
   getTumulos,
   getTumuloPorId,
   getTumuloFiltro,
+
+  //compras
+  getCompras,
 
   //Avancados
   getContratosAVencer,
