@@ -38,6 +38,8 @@ app.get("/fornecedor/filtro", readRoutes.getFornecedoresFiltro(db))
 
 app.get("/funcionario", readRoutes.getFuncionarios(db))
 app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
+app.get("/funcionarioLivre", readRoutes.getFuncionariosLivres(db))
+
 
 app.get("/evento", readRoutes.getEventos(db));
 app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
@@ -48,7 +50,7 @@ app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));
 app.get("/maisTrabalhadores", readRoutes.getFuncionariosMaisTrabalhadores(db));
 app.get("/tumulosMaisOcupados", readRoutes.getTumulosMaisOcupados(db));
 app.get("/localizacaoContratosAtivos", readRoutes.getLocalizacaoContratosAtivos(db));
-app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorVolume(db));
+app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorGastos(db));
 app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
 app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
 app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));

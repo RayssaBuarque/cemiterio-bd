@@ -437,7 +437,9 @@ const getTumuloFiltro = (db) => {
       id_tumulo: req.query.id_tumulo,
       status: req.query.status,
       tipo: req.query.tipo,
-      capacidade: req.query.capacidade
+      capacidade: req.query.capacidade,
+      atual: req.query.atual
+      
     };
 
     const { where, values } = construtorDeWhere(filtros);
