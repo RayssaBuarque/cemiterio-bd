@@ -191,7 +191,6 @@ const TumuloWrapper = styled.div<{ $isEven: boolean }>`
 const StatusBadge = styled.span<{ $color: string }>`
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    border-radius: 12px;
     font-size: 0.875rem;
     font-weight: 700;
     color: #fff;

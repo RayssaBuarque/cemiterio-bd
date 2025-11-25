@@ -33,6 +33,8 @@ app.get("/titular/filtro", readRoutes.getTitularesFiltro(db));
 app.get("/tumulo", readRoutes.getTumulos(db));
 app.get("/tumulo/filtro", readRoutes.getTumuloFiltro(db));
 app.get("/tumulo/:id_tumulo", readRoutes.getTumuloPorId(db));
+app.get("/tumulo/porCpf/:cpf", readRoutes.getTumulosPorCpf(db));
+
 
 app.get("/falecido", readRoutes.getFalecidos(db));
 app.get("/falecido/filtro", readRoutes.getFalecidosFiltro(db));
