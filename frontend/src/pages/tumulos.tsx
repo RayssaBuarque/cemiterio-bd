@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import api from '../../services/api';
+import api from '../services/api';
 import { ITumuloInput } from '../types'; // Certifique-se de exportar ITumuloInput no types
 
 // components

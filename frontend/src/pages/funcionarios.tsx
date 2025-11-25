@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import api from '../../services/api';
+import api from '../services/api';
 import { IFuncionarioInput } from '../types'; // Certifique-se que o caminho está correto
 
 // components

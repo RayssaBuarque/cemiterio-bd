@@ -2,7 +2,7 @@ import styled, { css } from "styled-components";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 
-import api from "../../services/api";
+import api from "../services/api";
 import { ITitularInput } from "../types"; // Importe a interface correta
 
 // components

@@ -3,6 +3,7 @@ export interface IFiltros extends Record<string, any> {
     data_fim?: string;
     limit?: number;
     page?: number;
+    id_evento?: number;
 }
 
 // === CONTRATOS ===
@@ -47,8 +48,9 @@ export interface IFuncionarioInput {
 
 // === EVENTOS ===
 export interface IEventoInput {
-    titulo: string;
-    data: string;
-    descricao?: string;
-    id_tumulo?: number;
+    id_evento: number;
+    lugar: string;
+    dia: string;
+    horario: string;
+    valor?: number;
 }

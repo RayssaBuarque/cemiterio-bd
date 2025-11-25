@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import api from "../../services/api";
+import api from "../services/api";
 
 import { ITumuloInput } from "../types";
 import Button from "./Button";

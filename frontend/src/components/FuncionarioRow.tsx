@@ -1,7 +1,7 @@
 import styled, { css } from "styled-components";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import api from "../../services/api"; // Ajuste o caminho
+import api from "../services/api"; // Ajuste o caminho
 import { IFuncionarioInput } from "../types"; // Ajuste o caminho
 import Button from "./Button";
 
