@@ -5,8 +5,9 @@ import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import Image from "next/image";
 import TitularRow from "@/components/TitularRow";
-import Pagination from "../components/Paginantion"; // Assumindo que o componente Pagination existe conforme o exemplo
+import Pagination from "../components/Paginantion"; 
 import SecondaryButton from "@/components/SecondaryButton";
+import TitularPopUp from "@/components/TitularPopUp"; // Importando o Modal
 
 // API
 import api from "../services/api";
@@ -16,6 +17,7 @@ import SideBar from "@/base/Sidebar";
 const Titulares = () => {
 
     const [isLoading, setIsLoading] = useState(false)
+    const [isOpen, setisOpen] = useState(false) // Controle do Modal
     const [titulares, setTitulares] = useState<ITitularInput[]>([])
     const [filteredTitulares, setFilteredTitulares] = useState<ITitularInput[]>([])
     const [maxRows] = useState(11)
@@ -41,12 +43,25 @@ const Titulares = () => {
         }
     }
 
-    const formatCPF = (cpf: string | undefined) => {
-        if (!cpf) return '';
-        // Remove tudo que não é dígito
-        const cleaned = cpf.replace(/\D/g, '');
-        // Aplica a máscara XXX.XXX.XXX-XX
-        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    // Handler para fechar o modal e atualizar a lista se necessário
+    const OnClosePopUp = async (shouldRefresh?: boolean) => {
+        setisOpen(false);
+        if (shouldRefresh) {
+            await getTitulares();
+        }
+    }
+
+    // Função para formatar Telefone
+    const formatPhone = (phone: string | undefined) => {
+        if (!phone) return '-';
+        const cleaned = phone.replace(/\D/g, '');
+        
+        if (cleaned.length === 11) {
+            return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        } else if (cleaned.length === 10) {
+            return cleaned.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+        }
+        return phone;
     }
 
     const totalPages = Math.ceil(filteredTitulares.length / maxRows)
@@ -87,10 +102,12 @@ const Titulares = () => {
                             <Button onClick={() => handleSearch(query)}>Consultar</Button>
                         </TitularesFilter>
                         
-                        {/* Botão de adicionar mantido do seu código original */}
-                        <SecondaryButton onClick={() => { /* Lógica de modal */ }}>
+                        <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
+
+                        {/* Modal de Adição */}
+                        <TitularPopUp isOpen={isOpen} onClose={OnClosePopUp} />
                     </TitularesInteractions>
                 </TitularesTitle>
 
@@ -106,12 +123,12 @@ const Titulares = () => {
                         currentTitulares.map((titular, index) => {
                             return(
                                 <TitularRow
-                                    key={titular.cpf}
+                                    key={titular.cpf} 
                                     isEven={index % 2 === 0}
-                                    cpf={titular.cpf}
+                                    cpf={titular.cpf} 
                                     nome={titular.nome}
                                     endereco={titular.endereco || '-'}
-                                    telefone={titular.telefone || '-'}
+                                    telefone={formatPhone(titular.telefone)} 
                                 />
                             )
                         })
@@ -119,7 +136,7 @@ const Titulares = () => {
                     
                     {isLoading && 
                         <div className="allRow">
-        
+              
                         </div>
                     }
                 </TitularesWrapper> 

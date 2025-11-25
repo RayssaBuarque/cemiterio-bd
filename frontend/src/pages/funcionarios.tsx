@@ -8,6 +8,7 @@ import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
 import FuncionarioRow from '../components/FuncionarioRow';
+import FuncionarioPopUp from '@/components/FuncionarioPopUp'; // Novo componente
 
 import Image from 'next/image';
 
@@ -37,6 +38,14 @@ const Funcionarios = () => {
             console.error("Erro ao buscar funcionários:", error)
         } finally {
             setisLoading(false)
+        }
+    }
+
+    // Handler para fechar o modal e recarregar a lista se necessário
+    const OnClosePopUp = async (shouldRefresh?: boolean) => {
+        setisOpen(false);
+        if (shouldRefresh) {
+            await getFuncionarios();
         }
     }
 
@@ -86,6 +95,9 @@ const Funcionarios = () => {
                             + Adicionar
                         </SecondaryButton>
 
+                        {/* Modal de Adição */}
+                        <FuncionarioPopUp isOpen={isOpen} onClose={OnClosePopUp} />
+
                     </FuncionariosInteractions>
 
                 </FuncionariosTitle>
@@ -125,7 +137,7 @@ const Funcionarios = () => {
 
                     {isLoading &&
                         <div className="allRow">
-                 
+   
                         </div>
                     }
 
