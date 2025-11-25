@@ -60,6 +60,8 @@ app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorGastos(db));
 app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
 app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
 app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
+app.get("/taxaOcupacao", readRoutes.getTaxaOcupacao(db));
+
 
 
 // Rotas de INSERÇÃO

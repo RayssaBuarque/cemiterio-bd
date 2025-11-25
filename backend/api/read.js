@@ -562,6 +562,24 @@ const getTumulosMaisOcupados = (db) => {
   };
 };
 
+const getTaxaOcupacao = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+      SELECT 
+        COUNT(*) AS total_tumulos,
+        SUM(CASE WHEN status IN ('Reservado', 'Cheio') THEN 1 ELSE 0 END) AS tumulos_ocupados,
+        (SUM(CASE WHEN status IN ('Reservado', 'Cheio') THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS taxa_ocupacao_percentual
+        FROM tumulo
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar túmulos" });
+    }
+  };
+};
+
 // 4. Localização com mais contratos ativos
 const getLocalizacaoContratosAtivos = (db) => {
   return async (req, res) => {
@@ -620,7 +638,6 @@ const getEstatisticasCompras = (db) => {
           AVG(valor) AS valor_medio,
           MAX(valor) AS maior_compra
         FROM compra
-        GROUP BY item
         ORDER BY soma_valor DESC
       `);
       return res.json(result.rows);
@@ -832,6 +849,7 @@ export default {
   getFornecedoresMaiorGastos,
   getEstatisticasCompras,
   getEstatisticasFalecidos,
-  getFornecedorMaisUsado
+  getFornecedorMaisUsado,
+  getTaxaOcupacao
 
 };
