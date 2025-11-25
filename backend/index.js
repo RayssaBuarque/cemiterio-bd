@@ -1,9 +1,12 @@
 import express from "express";
 import { Pool } from "pg";
 import cors from 'cors'
-import readRoutes from './api/read.js';
+
+// Rotas de CRUD
 import createRoutes from './api/create.js';
+import readRoutes from './api/read.js';
 import updateHandlers from './api/update.js';
+import deleteRoutes from './api/delete.js';
 
 
 const app = express();
@@ -86,9 +89,12 @@ app.post("/funcionario", createRoutes.createFuncionario(db));
 app.post("/titular", createRoutes.createTitular(db));
 app.post("/tumulo", createRoutes.createTumulo(db));
 
-// // Rotas de DELEÇÃO
-// app.delete("/titular/:cpf", deleteRoutes.deleteTitularByCpf);
-// (...)
+// Rotas de DELEÇÃO
+app.delete("/contrato", deleteRoutes.deleteContrato(db));
+app.delete("/falecido", deleteRoutes.deleteFalecido(db));
+app.delete("/evento/:id_evento", deleteRoutes.deleteEvento(db));
+app.delete("/funcionario/:cpf", deleteRoutes.deleteFuncionario(db));
+app.delete("/titular/:cpf", deleteRoutes.deleteTitular(db));
 
 // Rotas de ATUALIZAÇÃO
 app.put('/titular/:cpf', updateHandlers.updateTitular(db));
