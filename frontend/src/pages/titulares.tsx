@@ -1,97 +1,91 @@
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import api from '../services/api';
-import { ITitularInput } from '../types'; // Certifique-se que o caminho está correto
+import styled from "styled-components";
+import { useState, useEffect } from "react";
 
-// components
-import Button from '../components/Button';
-import SecondaryButton from '../components/SecondaryButton';
-import SideBar from '../base/Sidebar';
-import TitularRow from '@/components/TitularRow';
+// Components
+import Button from "@/components/Button";
+import Image from "next/image";
+import TitularRow from "@/components/TitularRow";
+import Pagination from "../components/Paginantion"; // Assumindo que o componente Pagination existe conforme o exemplo
+import SecondaryButton from "@/components/SecondaryButton";
 
-import Image from 'next/image';
+// API
+import api from "../services/api";
+import { ITitularInput } from "../types";
+import SideBar from "@/base/Sidebar";
 
 const Titulares = () => {
 
-    // Tipando o estado com a interface fornecida
+    const [isLoading, setIsLoading] = useState(false)
     const [titulares, setTitulares] = useState<ITitularInput[]>([])
     const [filteredTitulares, setFilteredTitulares] = useState<ITitularInput[]>([])
-    
-    const [isOpen, setisOpen] = useState(false) // Para abrir modal de criação
-    const [isLoading, setisLoading] = useState(true)
+    const [maxRows] = useState(11)
 
-    // Paginação e Filtro
+    // Pagination
     const [currentPage, setCurrentPage] = useState(1)
     const [query, setQuery] = useState('')
-    const maxRows = 11;
 
-    const getTitulares = async () => {
-        if (!isLoading) setisLoading(true);
-
+    const getTitulares = async() => {
+        setIsLoading(true)
         try {
-            // A chamada deve corresponder à sua API (api.getTitulares)
             const { data } = await api.getTitulares()
             if (data) {
-                setTitulares(data);
-                setFilteredTitulares(data);
+                setTitulares(data)
+                setFilteredTitulares(data)
             }
-        } catch (error) {
-            console.error("Erro ao buscar titulares:", error)
-        } finally {
-            setisLoading(false)
+        }
+        catch(err){
+            console.log("Houve um erro na requisição dos titulares", err)
+        }
+        finally{
+            setIsLoading(false)
         }
     }
 
-    // Busca inicial
-    useEffect(() => {
-        getTitulares()
-    }, [])
-
-    // Lógica de Filtro (Busca por Nome ou CPF)
-    useEffect(() => {
-        const lowerQuery = query.toLowerCase();
-        const filtered = titulares.filter((titular) => 
-            titular.nome.toLowerCase().includes(lowerQuery) || 
-            titular.cpf.includes(lowerQuery)
-        );
-        setFilteredTitulares(filtered);
-        setCurrentPage(1); // Reseta para página 1 ao filtrar
-    }, [query, titulares])
-
-    // Lógica de Paginação
     const totalPages = Math.ceil(filteredTitulares.length / maxRows)
     const currentTitulares = filteredTitulares.slice(
         (currentPage - 1) * maxRows,
         currentPage * maxRows
     )
 
+    const handleSearch = (e: string) => {
+        const queryLower = e.toLowerCase()
+        const filtered = titulares.filter(titular => 
+            titular.nome.toLowerCase().includes(queryLower)
+            || titular.cpf.includes(queryLower)
+        )
+        setFilteredTitulares(filtered)
+        setCurrentPage(1)
+    }
+
+    useEffect(() => {
+        getTitulares()
+    }, [])
+
     return (
         <>
-            <SideBar name={"Titulares"} />
+            <SideBar name={"Titulares"}/> 
+
             <TitularesContainer>
                 <TitularesTitle>
                     <h5>Titulares</h5>
 
                     <TitularesInteractions>
                         <TitularesFilter>
-                            <input
+                            <input 
                                 type="text"
-                                value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar por nome ou CPF..."
-                            />
-                            <Button onClick={() => getTitulares()}>Atualizar</Button>
+                                placeholder="Buscar por nome ou CPF...">
+                            </input>
+                            <Button onClick={() => handleSearch(query)}>Consultar</Button>
                         </TitularesFilter>
-                        <span />
-                        <SecondaryButton onClick={() => setisOpen(true)}>
+                        
+                        {/* Botão de adicionar mantido do seu código original */}
+                        <SecondaryButton onClick={() => { /* Lógica de modal */ }}>
                             + Adicionar
                         </SecondaryButton>
-
                     </TitularesInteractions>
-
                 </TitularesTitle>
 
-                {/* Cabeçalho da Tabela */}
                 <TitularesGrid>
                     <label>CPF</label>
                     <label>Nome</label>
@@ -100,73 +94,45 @@ const Titulares = () => {
                 </TitularesGrid>
 
                 <TitularesWrapper>
-                    {!isLoading &&
+                    {!isLoading && 
                         currentTitulares.map((titular, index) => {
-                            // Renderiza a linha. 
-                            // Nota: Você deve criar/adaptar o componente TitularRow para aceitar estas props
-                            // e usar o mesmo Grid CSS definido abaixo.
-                            return (
+                            return(
                                 <TitularRow
-                                    key={titular.cpf} // CPF é chave única
+                                    key={titular.cpf}
                                     isEven={index % 2 === 0}
                                     cpf={titular.cpf}
                                     nome={titular.nome}
                                     endereco={titular.endereco || '-'}
                                     telefone={titular.telefone || '-'}
-                                    // Funções de update/delete podem ser passadas aqui
-                                    updateList={getTitulares} 
                                 />
                             )
                         })
                     }
-
-                    {!isLoading && filteredTitulares.length === 0 &&
-                        <p className='allRow noTitulares'>Nenhum titular encontrado :(</p>
-                    }
-
-                    {isLoading &&
+                    
+                    {isLoading && 
                         <div className="allRow">
-         
+        
                         </div>
                     }
-
-                </TitularesWrapper>
+                </TitularesWrapper> 
 
                 <TitularesFooter>
                     <p>{filteredTitulares.length} titulares encontrados</p>
-                    {!isLoading && filteredTitulares.length > 0 &&
-                        <Pagination>
-                            <Button
-                                className={currentPage === 1 ? 'noInteraction' : ''}
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            >{"<"}</Button>
-                            
-                            {/* Lógica simples de paginação (pode ser otimizada para muitos números) */}
-                            {Array.from({ length: totalPages }, (_, i) =>
-                                <Button
-                                    className={currentPage === i + 1 ? '' : 'disabled'}
-                                    key={i + 1}
-                                    onClick={() => setCurrentPage(i + 1)}
-                                >{i + 1}</Button>
-                            )}
-
-                            <Button
-                                className={currentPage === totalPages ? 'noInteraction' : ''}
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            >{">"}</Button>
-                        </Pagination>
-                    }
-                </TitularesFooter>
+                        {!isLoading &&
+                            filteredTitulares.length > 0 &&
+                            <Pagination
+                                currentPage={currentPage}
+                                setCurrentPage={setCurrentPage}
+                                totalPages={totalPages}
+                            />
+                        }
+                </TitularesFooter>  
             </TitularesContainer>
         </>
     )
 }
 
-export default Titulares;
-
-// ==========================================
-// STYLED COMPONENTS
-// ==========================================
+export default Titulares
 
 const TitularesContainer = styled.div`
     padding: 1.5rem;
@@ -177,8 +143,8 @@ const TitularesContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    *{
+    
+    * {
         color: var(--content-neutrals-primary);
     }
 `
@@ -207,7 +173,6 @@ const TitularesFilter = styled.div`
         background-color: transparent;
         transition: all 200ms ease-in-out;
         border: 1px solid var(--content-neutrals-primary);
-        border-radius: 4px;
 
         &:hover, &:focus-visible{
             background-color: var(--background-neutrals-secondary);
@@ -215,7 +180,6 @@ const TitularesFilter = styled.div`
 
         &:focus-visible{
             border: 1px solid var(--brand-primary);
-            outline: none;
         }
     }
 
@@ -231,18 +195,11 @@ const TitularesInteractions = styled.div`
     gap: 1rem;
     height: 100%;
 
-    span {
-        height: 3rem;
-        border-left: 1px solid var(--outline-neutrals-secondary);
-    }
-
     button {
-        max-width: 10rem; /* Aumentei um pouco para caber "+ Adicionar" */
+        max-width: 10rem;
     }
 `
 
-// GRID DEFINITION: Alterado para comportar as 5 colunas do Titular
-// Layout sugerido: CPF (fixo), Nome (flex), RG (fixo), Endereço (flex maior), Telefone (fixo)
 const TitularesGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
@@ -251,14 +208,11 @@ const TitularesGrid = styled.div`
     /* CPF | Nome | Endereço | Telefone */
     grid-template-columns: 1fr 2fr 2.5fr 1fr; 
     grid-column-gap: 1.5rem;
-    align-items: center;
+    grid-row-gap: 0.75rem; 
     margin-bottom: 0.75rem;
 
     label {
         font: 700 1.125rem/1.5rem 'At Aero Bold';
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 `
 
@@ -269,13 +223,6 @@ const TitularesWrapper = styled.div`
     padding-bottom: 0.75rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--outline-neutrals-secondary);
-    min-height: 200px; /* Evita pulo de layout no loading */
-
-    .noTitulares{
-        text-align: center;
-        font: 700 1.125rem/1.5rem 'At Aero Bold';
-        margin-top: 2rem;
-    }
 
     .allRow{
         display: flex;
@@ -290,34 +237,8 @@ const TitularesFooter = styled.footer`
     width: 100%;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     
     p {
         font: 700 1rem/1.5rem 'At Aero Bold';
-    }
-`
-
-const Pagination = styled.div`
-    display: flex;
-    gap: 0.75rem;
-
-    button{
-        width: 2rem;
-        height: 2rem;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-    }
-    .noInteraction{
-        color: var(--content-neutrals-primary);
-        opacity: 0.5;
-        pointer-events: none;
-    }
-
-    .disabled{
-        background-color: transparent;
-        border: 1px solid var(--content-neutrals-primary);
     }
 `
