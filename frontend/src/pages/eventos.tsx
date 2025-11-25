@@ -4,14 +4,15 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 // api
-import api from "../services/api"; // Usando o api.ts criado anteriormente
-import { IEventoInput } from "../types"; // Ajuste o caminho conforme sua estrutura
+import api from "../services/api";
+import { IEventoInput } from "../types";
 
 // components
 import Button from "../components/Button";
 import SecondaryButton from "../components/SecondaryButton";
 import EventRow from "@/components/EventRow";
 import SideBar from "@/base/Sidebar";
+import Pagination from "@/components/Paginantion";// Assumindo a existência conforme padrões anteriores
 
 const Events = () => {
     const router = useRouter()
@@ -61,7 +62,6 @@ const Events = () => {
         setCurrentPage(1)
     }
 
-    // Effect para busca em tempo real (opcional, igual ao exemplo anterior)
     useEffect(() => {
         handleSearch(query)
     }, [query, events])
@@ -91,9 +91,11 @@ const Events = () => {
 
                 </EventsTitle>
 
+                {/* Grid Atualizado com coluna Equipe */}
                 <EventsGrid>
                     <label>ID</label>
                     <label>Lugar</label>
+                    <label>Equipe</label>
                     <label>Dia</label>
                     <label>Horário</label>
                     <label>Valor</label>
@@ -106,7 +108,7 @@ const Events = () => {
                                 <EventRow
                                     key={event.id_evento}
                                     isEven={index % 2 === 0}
-                                    {...event} // Passa id_evento, lugar, dia, horario, valor
+                                    {...event}
                                 /> 
                             )
                         })
@@ -118,7 +120,7 @@ const Events = () => {
 
                     {isLoading &&
                         <div className="allRow">
-        
+                            {/* Loading placeholder */}
                         </div>
                     }
 
@@ -127,25 +129,11 @@ const Events = () => {
                 <EventsFooter>
                     <p>{filteredEvents.length} eventos encontrados</p>
                     {!isLoading && filteredEvents.length > 0 &&
-                        <Pagination>
-                            <Button 
-                                className={currentPage === 1 ? 'noInteraction' : ''}
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>{"<"}
-                            </Button>
-                            
-                            {Array.from({length: totalPages}, (_, i) => 
-                                <Button 
-                                    className={currentPage === i + 1 ? '': 'disabled'}
-                                    key={i + 1} 
-                                    onClick={() => setCurrentPage(i + 1)}>{i + 1}
-                                </Button>
-                            )}
-                            
-                            <Button 
-                                className={currentPage === totalPages? 'noInteraction' : ''}
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>{">"}
-                            </Button>
-                        </Pagination>
+                        <Pagination
+                            currentPage={currentPage}
+                            setCurrentPage={setCurrentPage}
+                            totalPages={totalPages}
+                        />
                     }
                 </EventsFooter>
             </EventsContainer>
@@ -198,15 +186,15 @@ const EventsInteractions = styled.div`
     button { max-width: 8rem; }
 `
 
-// Grid ajustado para 5 colunas: ID | Lugar | Dia | Horário | Valor
+// Grid ajustado para 6 colunas: ID | Lugar | Equipe | Dia | Horário | Valor
 const EventsGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* ID | Lugar | Dia | Horário | Valor */
-    grid-template-columns: 0.5fr 3fr 1fr 1fr 1fr; 
-    grid-column-gap: 3rem;
+    /* ID | Lugar | Equipe | Dia | Horário | Valor */
+    grid-template-columns: 0.5fr 2fr 2fr 1fr 1fr 1fr; 
+    grid-column-gap: 1.5rem;
     align-items: center;
     margin-bottom: 0.75rem;
 
@@ -225,12 +213,4 @@ const EventsWrapper = styled.div`
 const EventsFooter = styled.footer`
     width: 100%; display: flex; justify-content: space-between;
     p { font: 700 1rem/1.5rem 'At Aero Bold'; }
-`
-
-const Pagination = styled.div`
-    display: flex; gap: 0.75rem;
-
-    button{ width: 2rem; height: 2rem; padding: 0; display: flex; justify-content: center; align-items: center;}
-    .noInteraction{ color: var(--content-neutrals-primary); background-color: var(--background-neutrals-tertiary); pointer-events: none; }
-    .disabled{ background-color: transparent; border: 1px solid var(--content-neutrals-primary); }
 `

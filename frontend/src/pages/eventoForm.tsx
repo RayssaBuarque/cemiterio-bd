@@ -96,12 +96,9 @@ const EventForm = () => {
         const fetchAvailableTeam = async () => {
             if (!watchedDia || !watchedHorario) return;
             
-            // Validação básica para evitar chamadas com datas incompletas
-            if (watchedDia.length !== 10 || watchedHorario.length !== 5) return;
-
             try {
                 const { data } = await api.getFuncionariosLivres(watchedDia, watchedHorario);
-                let combinedList = data || [];
+                let combinedList = data.funcionarios_livres || [];
 
                 // Se estivermos editando, reinserimos os funcionários originais na lista de disponíveis
                 // Isso corrige o problema deles sumirem do select porque o backend os considera "ocupados" com este evento
@@ -138,7 +135,7 @@ const EventForm = () => {
                 console.log("Update payload:", payload);
                 // Exemplo: await api.put(`/eventos/${id}`, payload);
             }
-            router.push('/events');
+            router.push('/eventos');
         } catch (err) {
             console.error("Erro ao salvar evento", err);
             alert("Erro ao salvar as informações do evento.");

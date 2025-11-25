@@ -150,8 +150,8 @@ const api = {
         return await axios.get(`/funcionario/${id_evento}`);
     },
 
-    getFuncionariosLivres: async (dia: string, horario: string): Promise<AxiosResponse<any>> => {
-        return await axios.get("/funcionarioLivre", { params: { dia, horario } });
+    getFuncionariosLivres: async (data: string, horario: string): Promise<AxiosResponse<any>> => {
+        return await axios.get("/funcionarioLivre", { params: { data, horario } });
     },
 
     createFuncionario: async (dadosFuncionario: IFuncionarioInput): Promise<AxiosResponse<any>> => {

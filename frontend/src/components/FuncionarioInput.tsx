@@ -20,7 +20,7 @@ const FuncionarioInput = ({ selectedFuncionarios = [], setSelectedFuncionarios, 
     const handleRemove = (id: string) => {
         setSelectedFuncionarios(selectedFuncionarios.filter(func => func.split("|")[0] !== id))
     }
-
+    
     // Filtra para não mostrar no Select quem já foi selecionado
     const availableOptions = funcionarios.filter((func) => 
         !selectedFuncionarios.some(selected => selected.split("|")[0] === func.cpf) 
