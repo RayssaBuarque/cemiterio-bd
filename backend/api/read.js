@@ -44,24 +44,31 @@ const getContratos = (db) => {
 //-------------------------------------------------------------------------//
 const getContratoPorCpf = (db) => {
   return async (req, res) => {
-    const { cpf } = req.params;
     try {
-      const { id } = req.params;
-      const result = await db.query(
-        `SELECT * FROM contrato WHERE cpf = ${cpf}`
-      );
-
-      if (!result.rows[0]) {
-        return res.status(404).json({ error: "Contrato por cpf não encontrado" });
+      const { cpf } = req.params;
+      
+      // Validação básica do CPF
+      if (!cpf || cpf.length < 11) {
+        return res.status(400).json({ error: "CPF inválido" });
       }
 
-      return res.json(result.rows[0]);
+      // Usando parameterized query para evitar SQL injection
+      const result = await db.query(
+        `SELECT * FROM contrato WHERE cpf = $1`,
+        [cpf]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Nenhum contrato encontrado para este CPF" });
+      }
+
+      return res.json(result.rows);
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ error: "Erro ao buscar contrato por cpf" });
+      return res.status(500).json({ error: "Erro ao buscar contrato por CPF" });
     }
   };
-}
+};
 
 //-------------------------------------------------------------------------//
 // Retorna uma lista de contratos com base em um filtro                    //
