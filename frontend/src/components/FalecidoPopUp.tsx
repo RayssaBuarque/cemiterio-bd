@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styled, { css } from 'styled-components';
 import { useForm } from 'react-hook-form';
 
 // Services & Types
 import api from '../services/api';
-import { IFalecidoInput, ITitularInput, ITumuloInput } from '../types';
+import { IFalecidoInput, ITitularInput, ITumuloInput, IContrato } from '../types';
 
 // Components
 import Button from './Button'; 
@@ -16,33 +16,30 @@ interface FalecidoPopUpProps {
 }
 
 export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
+    // Listas completas vindas da API
     const [titularesList, setTitularesList] = useState<ITitularInput[]>([]);
     const [tumulosList, setTumulosList] = useState<ITumuloInput[]>([]);
-    const { register, handleSubmit, reset } = useForm<IFalecidoInput>();
+    const [contratosList, setContratosList] = useState<IContrato[]>([]);
+    
+    const { register, handleSubmit, reset, watch, setValue } = useForm<IFalecidoInput>();
 
+    // Monitora o CPF selecionado em tempo real
+    const selectedCpf = watch('cpf');
 
-    const formatCPF = (cpf: string | undefined) => {
-        if (!cpf) return '';
-        // Remove tudo que não é dígito
-        const cleaned = cpf.replace(/\D/g, '');
-        // Aplica a máscara XXX.XXX.XXX-XX
-        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-
-
-    // Busca as listas de Titulares e Túmulos para preencher os Selects assim que o modal abre
+    // Busca dados iniciais
     useEffect(() => {
         if (isOpen) {
             const fetchData = async () => {
                 try {
-                    // Faz as requisições em paralelo para performance
-                    const [titularesRes, tumulosRes] = await Promise.all([
+                    const [titularesRes, tumulosRes, contratosRes] = await Promise.all([
                         api.getTitulares(),
-                        api.getTumulos()
+                        api.getTumulos(),
+                        api.getContratoPorCpf(selectedCpf)
                     ]);
                     
                     if (titularesRes.data) setTitularesList(titularesRes.data);
                     if (tumulosRes.data) setTumulosList(tumulosRes.data);
+                    if (contratosRes.data) setContratosList(contratosRes.data);
                 } catch (error) {
                     console.error("Erro ao buscar dados para seleção", error);
                 }
@@ -50,6 +47,40 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
             fetchData();
         }
     }, [isOpen]);
+
+    // Lógica de Filtragem dos Túmulos
+    const availableTumulos = useMemo(() => {
+        // Se não tem CPF selecionado, não mostra opções reservadas específicas (apenas livres, ou trava tudo)
+        // O requisito diz: "necessário selecionar o CPF primeiro para depois selecionar o túmulo"
+        if (!selectedCpf) return [];
+
+        return tumulosList.filter(tumulo => {
+            console.log(tumulo);
+            // 1. Remove os cheios/ocupados
+            if (tumulo.status === 'Cheio') return false;
+
+            // 2. Se for Livre, mostra
+            if (tumulo.status === 'Vazio') return true;
+
+            // 3. Se for Reservado, verifica se pertence ao titular selecionado
+            if (tumulo.status === 'Reservado') {
+                const contratoVinculado = contratosList.find(c => 
+                    c.cpf === selectedCpf && 
+                    c.id_tumulo === tumulo.id_tumulo &&
+                    c.status === 'Ativo' // Verifica se o contrato está ativo
+                );
+                return !!contratoVinculado;
+            }
+
+            return false;
+        });
+    }, [selectedCpf, tumulosList, contratosList]);
+
+    // Reseta o campo de túmulo se o usuário trocar de titular, 
+    // para evitar que fique selecionado um túmulo reservado de outra pessoa
+    useEffect(() => {
+        setValue('id_tumulo', '' as any); // Reseta o valor visualmente
+    }, [selectedCpf, setValue]);
 
     const postFalecido = async (data: IFalecidoInput) => {
         try {
@@ -95,7 +126,7 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
                                 />
                             </FormGroup>
 
-                            {/* Linha 2: Titular (Select) e Túmulo (Select) */}
+                            {/* Linha 2: Titular e Túmulo */}
                             <FormRow $columns="2fr 1fr">
                                 <FormGroup>
                                     <StyledLabel htmlFor="cpf">Titular Responsável</StyledLabel>
@@ -106,19 +137,24 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
                                         <option value="">Selecione um titular...</option>
                                         {titularesList.map((t) => (
                                             <option key={t.cpf} value={t.cpf}>
-                                                {t.nome} ({formatCPF(t.cpf)})
+                                                {t.nome} ({t.cpf})
                                             </option>
                                         ))}
                                     </StyledSelect>
                                 </FormGroup>
+                                
                                 <FormGroup>
-                                    <StyledLabel htmlFor="id_tumulo">Túmulo</StyledLabel>
+                                    <StyledLabel htmlFor="id_tumulo">Túmulo Disponível</StyledLabel>
                                     <StyledSelect 
                                         id="id_tumulo" 
+                                        disabled={!selectedCpf} // Bloqueia até selecionar CPF
                                         {...register('id_tumulo', { required: true })}
                                     >
-                                        <option value="">Selecione...</option>
-                                        {tumulosList.map((t) => (
+                                        <option value="">
+                                            {!selectedCpf ? "Selecione um titular primeiro" : "Selecione..."}
+                                        </option>
+                                        
+                                        {availableTumulos.map((t) => (
                                             <option key={t.id_tumulo} value={t.id_tumulo}>
                                                 #{t.id_tumulo} - {t.tipo} ({t.status})
                                             </option>
@@ -218,7 +254,13 @@ const InputStyle = css`
     border: 1px solid var(--outline-neutrals-secondary);
     padding: 0.75rem 1rem; color: var(--content-neutrals-primary);
     font-size: 1rem; width: 100%; border-radius: 4px;
+    
     &:focus { outline: 1px solid var(--brand-primary); }
+    
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 `;
 const StyledInput = styled.input` ${InputStyle} `;
 const StyledSelect = styled.select` ${InputStyle} `;
