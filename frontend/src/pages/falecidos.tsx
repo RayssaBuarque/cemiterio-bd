@@ -8,15 +8,14 @@ import Button from '@/components/Button';
 import SecondaryButton from '@/components/SecondaryButton';
 import SideBar from '@/base/Sidebar';
 import FalecidoRow from '@/components/FalecidoRow';
-
-import Image from 'next/image';
+import FalecidoPopUp from '@/components/FalecidoPopUp'; // Importando o Modal de Adição
 
 const Falecidos = () => {
 
     const [falecidos, setFalecidos] = useState<IFalecidoInput[]>([])
     const [filteredFalecidos, setFilteredFalecidos] = useState<IFalecidoInput[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Controle do modal de criação (se houver)
+    const [isOpen, setisOpen] = useState(false) // Controle de estado do modal
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -24,11 +23,10 @@ const Falecidos = () => {
     const [query, setQuery] = useState('')
     const maxRows = 11;
 
-    const getFalecidos = async () => {
+        const getFalecidos = async () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            // Supondo que exista este endpoint na sua API
             const { data } = await api.getFalecidos() 
             if (data) {
                 setFalecidos(data);
@@ -38,6 +36,14 @@ const Falecidos = () => {
             console.error("Erro ao buscar falecidos:", error)
         } finally {
             setisLoading(false)
+        }
+    }
+
+    // Função chamada ao fechar o modal. Se refresh for true, recarrega a lista.
+    const OnClosePopUp = async (shouldRefresh?: boolean) => {
+        setisOpen(false);
+        if (shouldRefresh) {
+            await getFalecidos();
         }
     }
 
@@ -87,11 +93,14 @@ const Falecidos = () => {
                             + Adicionar
                         </SecondaryButton>
 
+                        {/* Modal de Adição */}
+                        <FalecidoPopUp isOpen={isOpen} onClose={OnClosePopUp} />
+
                     </FalecidosInteractions>
 
                 </FalecidosTitle>
 
-                {/* Cabeçalho da Tabela - Adaptado para IFalecidoInput */}
+                {/* Cabeçalho da Tabela */}
                 <FalecidosGrid>
                     <label>Nome</label>
                     <label>Titular (CPF)</label>
@@ -106,9 +115,10 @@ const Falecidos = () => {
                         currentFalecidos.map((falecido, index) => {
                             return (
                                 <FalecidoRow
-                                    key={`${falecido.id_tumulo}-${falecido.nome}`} // Chave composta para unicidade
+                                    // Usando chave composta para garantir unicidade caso não haja ID único explícito
+                                    key={`${falecido.id_tumulo}-${falecido.nome}-${falecido.cpf}`}
                                     isEven={index % 2 === 0}
-                                    {...falecido} // Passa todas as props do IFalecidoInput
+                                    {...falecido} 
                                     updateList={getFalecidos} 
                                 />
                             )
