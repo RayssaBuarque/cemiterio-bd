@@ -50,8 +50,8 @@ const TumuloRow = ({ id, status, tipo, capacidade, isEven, updateList }: TumuloR
     // Helper para cores do Status
     const getStatusColor = (status: string) => {
         switch(status) {
-            case 'Livre': return '#22C55E'; // Verde
-            case 'Ocupado': return '#EF4444'; // Vermelho
+            case 'Vazio': return '#22C55E'; // Verde
+            case 'Cheio': return '#EF4444'; // Vermelho
             case 'Reservado': return '#F59E0B'; // Amarelo
             default: return 'var(--content-neutrals-primary)';
         }

@@ -39,7 +39,9 @@ export interface IFornecedorInput {
 export interface IFuncionarioInput {
     cpf: string;
     nome: string;
-    cargo: string;
+    funcao: string;
+    modelo_contrato: string;
+    horas_semanais: number;
     salario?: number;
 }
 

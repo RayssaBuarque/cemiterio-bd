@@ -76,13 +76,13 @@ const SideBar = (props: SideBarProps) => {
                 initial={false}
                 animate={isOpen ? "open" : "closed"}
                 variants={sidebarVariants}
-            >
+            >   
                 <SidepanelWrapper>
                     <motion.div className="logo" variants={itemVariants}>
                         <Image
                             src = {Logo}
                             alt = "logo"
-                            width={200}
+                            width={180}
                         />
                     </motion.div>
 
