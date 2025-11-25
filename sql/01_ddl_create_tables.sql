@@ -18,11 +18,12 @@ CREATE TABLE titular (
 );
 
 CREATE TABLE tumulo (
-    ID_tumulo SERIAL PRIMARY KEY,
+    id_tumulo INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     status VARCHAR(20),
     tipo VARCHAR(30),
     capacidade INT
 );
+
 CREATE TABLE localizacao_tumulo (
     ID_tumulo INT,
     quadra VARCHAR(10),
@@ -44,14 +45,6 @@ CREATE TABLE contrato ( -----------------
     FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
 );
 
-CREATE TABLE evento (
-    ID_evento SERIAL PRIMARY KEY,
-    lugar VARCHAR(100),
-    dia DATE,
-    horario TIME,
-    valor NUMERIC(10,2)
-);
-
 CREATE TABLE falecido ( ------------
     CPF CHAR(11),
     nome VARCHAR(100) NOT NULL,
@@ -63,6 +56,18 @@ CREATE TABLE falecido ( ------------
 	FOREIGN KEY (CPF) REFERENCES titular(CPF),
 	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
 );
+
+CREATE TABLE evento (
+    ID_evento SERIAL PRIMARY KEY,
+    CPF CHAR(11),
+    nome VARCHAR(100) NOT NULL,
+    lugar VARCHAR(100),
+    dia DATE,
+    horario TIME,
+    valor NUMERIC(10,2),
+    FOREIGN KEY (CPF, nome) REFERENCES falecido(CPF, nome)
+);
+
 
 CREATE TABLE fornecedor (
     CNPJ CHAR(14) PRIMARY KEY,
