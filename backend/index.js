@@ -42,6 +42,7 @@ app.get("/evento/:id", readRoutes.getEventoPorId(db));
 
 
 // Rotas de INSERÇÃO
+app.post("/compra", createRoutes.createCompra(db));
 app.post("/contrato", createRoutes.createContrato(db));
 app.post("/cremacao", createRoutes.createCremacao(db));
 app.post("/velorio", createRoutes.createVelorio(db));
@@ -51,7 +52,6 @@ app.post("/fornecedor", createRoutes.createFornecedor(db));
 app.post("/funcionario", createRoutes.createFuncionario(db));
 app.post("/titular", createRoutes.createTitular(db));
 app.post("/tumulo", createRoutes.createTumulo(db));
-// (...)
 
 // // Rotas de DELEÇÃO
 // app.delete("/titular/:cpf", deleteRoutes.deleteTitularByCpf);
