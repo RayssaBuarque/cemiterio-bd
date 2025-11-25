@@ -3,6 +3,8 @@ import { Pool } from "pg";
 import cors from 'cors'
 import readRoutes from './api/read.js';
 import createRoutes from './api/create.js';
+import updateHandlers from './update.js';
+
 
 const app = express();
 app.use(express.json());
@@ -57,10 +59,6 @@ app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db))
 
 
 
-
-
-
-
 // Rotas de INSERÇÃO
 app.post("/compra", createRoutes.createCompra(db));
 app.post("/contrato", createRoutes.createContrato(db));
@@ -76,6 +74,15 @@ app.post("/tumulo", createRoutes.createTumulo(db));
 // // Rotas de DELEÇÃO
 // app.delete("/titular/:cpf", deleteRoutes.deleteTitularByCpf);
 // (...)
+
+// Rotas de ATUALIZAÇÃO
+app.put('/titular/:cpf', updateHandlers.updateTitular(db));
+app.put('/tumulo/:id_tumulo', updateHandlers.updateTumulo(db));
+app.put('/falecido/:cpf', updateHandlers.updateFalecido(db));
+app.put('/contrato/:id_contrato', updateHandlers.updateContrato(db));
+app.put('/fornecedor/:cnpj', updateHandlers.updateFornecedor(db));
+app.put('/funcionario/:cpf', updateHandlers.updateFuncionario(db));
+
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando: http://localhost:${PORT}`);
