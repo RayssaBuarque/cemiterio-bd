@@ -26,7 +26,7 @@ CREATE TABLE tumulo (
 );
 
 CREATE TABLE localizacao_tumulo (
-    ID_tumulo INT UNIQUE,
+    ID_tumulo INT,
     quadra VARCHAR(10),
     setor VARCHAR(10),
     numero INT,
@@ -35,7 +35,7 @@ CREATE TABLE localizacao_tumulo (
 );
 
 CREATE TABLE contrato ( -----------------
-    CPF CHAR(11) UNIQUE,
+    CPF CHAR(11),
     ID_tumulo INT UNIQUE,
     data_inicio DATE,
     prazo_vigencia INT,
@@ -47,7 +47,7 @@ CREATE TABLE contrato ( -----------------
 );
 
 CREATE TABLE falecido ( ------------
-    CPF CHAR(11)UNIQUE,
+    CPF CHAR(11),
     nome VARCHAR(100) NOT NULL,
     data_falecimento DATE,
     data_nascimento DATE,
@@ -60,7 +60,7 @@ CREATE TABLE falecido ( ------------
 
 CREATE TABLE evento (
     ID_evento INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    CPF CHAR(11) UNIQUE,
+    CPF CHAR(11),
     nome VARCHAR(100) NOT NULL,
     lugar VARCHAR(100),
     dia DATE,
@@ -77,7 +77,7 @@ CREATE TABLE fornecedor (
 );
 
 CREATE TABLE telefone_fornecedor (
-    CNPJ CHAR(14) UNIQUE,
+    CNPJ CHAR(14),
     telefone VARCHAR(15),
     PRIMARY KEY (CNPJ, telefone),
     FOREIGN KEY (CNPJ) REFERENCES fornecedor(CNPJ)
@@ -93,8 +93,8 @@ CREATE TABLE funcionario (
 );
 
 CREATE TABLE compra (
-    CNPJ CHAR(14) UNIQUE,
-	ID_evento INT UNIQUE,
+    CNPJ CHAR(14),
+	ID_evento INT,
     valor NUMERIC(10,2),
     item VARCHAR(100),
     quantidade INT,
@@ -106,29 +106,29 @@ CREATE TABLE compra (
 );
 
 CREATE TABLE funcionario_evento (
-    CPF CHAR(11) UNIQUE,
-    ID_evento INT UNIQUE,
+    CPF CHAR(11),
+    ID_evento INT,
     PRIMARY KEY (CPF, ID_evento),
     FOREIGN KEY (CPF) REFERENCES funcionario(CPF),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
 
 CREATE TABLE evento_sepultamento (
-    ID_evento INT UNIQUE,
+    ID_evento INT,
     local_destino VARCHAR (100),
     PRIMARY KEY (id_evento, local_destino),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
 
 CREATE TABLE evento_cremacao (
-    ID_evento INT UNIQUE,
+    ID_evento INT,
     forno INT,
     PRIMARY KEY (ID_evento, forno),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
 
 CREATE TABLE evento_velorio (
-    ID_evento INT UNIQUE,
+    ID_evento INT,
     sala INT,
     PRIMARY KEY (ID_evento, sala),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
