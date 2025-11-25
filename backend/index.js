@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import cors from 'cors'
 import readRoutes from './api/read.js';
 import createRoutes from './api/create.js';
-import updateHandlers from './update.js';
+import updateHandlers from './api/update.js';
 
 
 const app = express();
@@ -45,7 +45,7 @@ app.get("/funcionarioLivre", readRoutes.getFuncionariosLivres(db))
 
 app.get("/evento", readRoutes.getEventos(db));
 app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
-app.get("/evento/:id", readRoutes.getEventoPorId(db));
+app.get("/evento/:id_evento", readRoutes.getEventoPorId(db));
 
 app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
 app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));

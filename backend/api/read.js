@@ -118,9 +118,8 @@ const getEventos = (db) => {
 //-------------------------------------------------------------------------//
 const getEventoPorId = (db) => {
   return async (req, res) => {
-    const { id_evento } = req.params;
     try {
-      const { id } = req.params;
+      const { id_evento } = req.params;
       const result = await db.query(
         `SELECT * FROM evento WHERE id_evento = ${id_evento}`
       );
