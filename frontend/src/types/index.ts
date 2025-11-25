@@ -49,6 +49,16 @@ export interface IFornecedorInput {
     endereco: string;
 }
 
+// === COMPRAS ===
+export interface ICompras{
+    cnpj: string;
+    id_evento: number;
+    data_compra: string;
+    horario: string;
+    quantidade: number;
+    valor: number;
+}
+
 // === FUNCIONÁRIOS ===
 export interface IFuncionarioInput {
     cpf: string;

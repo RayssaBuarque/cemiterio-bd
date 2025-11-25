@@ -198,6 +198,10 @@ const api = {
         });
     },
 
+    getCompras: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/compra");
+    },
+
     getEstatisticasCompras: async (): Promise<AxiosResponse<any>> => {
         return await axios.get("/estatisticasCompras");
     },
