@@ -18,7 +18,7 @@ const CompraRow = ({ cnpj, id_evento, data_compra, horario, quantidade, valor, i
     // Helpers de formatação
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
-        
+
          const day = dateString.split('T')[0];
         return day.split('-').reverse().join('/');
     }
@@ -202,7 +202,7 @@ const inputCss = css`
     background-color: var(--background-neutrals-secondary);
     border: 1px solid var(--outline-neutrals-secondary);
     padding: 0.75rem; color: var(--content-neutrals-primary);
-    border-radius: 4px; width: 100%;
+
     &:focus { outline: 1px solid var(--brand-primary); }
 `;
 const StyledInput = styled.input` ${inputCss} `;

@@ -230,7 +230,6 @@ const StatusBadge = styled.div<{ $status: 'Ativo' | 'Reservado' }>`
     justify-content: center;
     align-items: center;
     padding: 0.25rem 0.75rem;
-    border-radius: 12px;
     font-size: 0.875rem;
     font-weight: 700;
     color: #fff;
