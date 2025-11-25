@@ -1,16 +1,25 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 // API & Types
 import api from "../../services/api";
-import { ITitularInput, IContrato } from "../../types";
+import { ITitularInput, IContrato, ITumuloInput, IFalecidoInput } from "../../types";
 import SideBar from "@/base/Sidebar";
 
 const TitularView = () => {
     const [isLoading, setIsLoading] = useState(false);
+    
+    // Dados Principais
     const [titularData, setTitularData] = useState<ITitularInput | null>(null);
+    
+    // Listas Relacionadas
     const [contratos, setContratos] = useState<IContrato[]>([]);
+    const [tumulos, setTumulos] = useState<ITumuloInput[]>([]);
+    const [falecidos, setFalecidos] = useState<IFalecidoInput[]>([]);
+
+    // Controle de UI
+    const [activeTab, setActiveTab] = useState<'contratos' | 'tumulos' | 'falecidos'>('contratos');
 
     const router = useRouter()
     const { cpf } = router.query
@@ -19,23 +28,37 @@ const TitularView = () => {
         if (!cpf) return;
         setIsLoading(true)
         try{   
-            // 1. Obter dados do Titular (Simulando filtro se não houver endpoint específico ou usando endpoint geral)
-            // Idealmente: api.getTitularPorCpf(cpf)
+            // 1. Obter dados do Titular
             const { data: titulares } = await api.getTitulares();
             const titular = titulares.find((t: ITitularInput) => t.cpf === cpf);
-            
 
             if (titular) {
                 setTitularData(titular);
                 
                 // 2. Obter contratos vinculados
                 const { data: contratosData } = await api.getContratoPorCpf(String(cpf));
-                // O endpoint retorna apenas UM contrato ou lista? Se for lista:
+                let contratosArray: IContrato[] = [];
+
                 if (Array.isArray(contratosData)) {
-                    setContratos(contratosData);
+                    contratosArray = contratosData;
                 } else if (contratosData) {
-                    setContratos([contratosData]); // Coloca em array se retornar objeto único
+                    contratosArray = [contratosData];
                 }
+                setContratos(contratosArray);
+
+                // 3. Obter Túmulos vinculados (via Contratos)
+                // Pega os IDs dos túmulos presentes nos contratos deste titular
+                const tumulosIds = contratosArray.map(c => c.id_tumulo);
+                if (tumulosIds.length > 0) {
+                    const { data: todosTumulos } = await api.getTumulos();
+                    const tumulosVinculados = todosTumulos.filter((t: ITumuloInput) => tumulosIds.includes(t.id_tumulo));
+                    setTumulos(tumulosVinculados);
+                }
+
+                // 4. Obter Falecidos vinculados (via CPF do Titular)
+                const { data: todosFalecidos } = await api.getFalecidos();
+                const falecidosVinculados = todosFalecidos.filter((f: IFalecidoInput) => f.cpf === cpf);
+                setFalecidos(falecidosVinculados);
             }
         }
         catch(err){
@@ -56,9 +79,16 @@ const TitularView = () => {
     const formatCurrency = (val: number) => 
         new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-    const formatDate = (timestamp: number) => {
-        if (!timestamp) return '-';
-        return new Date(timestamp).toLocaleDateString('pt-BR');
+    const formatDate = (dateString: string | number) => {
+        if (!dateString) return '-';
+        // Se for number (timestamp)
+        if (typeof dateString === 'number') return new Date(dateString).toLocaleDateString('pt-BR');
+        // Se for string YYYY-MM-DD
+        if (dateString.includes('-')) {
+            const day = dateString.split('T')[0];
+            return day.split('-').reverse().join('/');
+        }
+        return dateString;
     }
 
     if (!titularData && !isLoading) return <p>Titular não encontrado.</p>;
@@ -82,41 +112,106 @@ const TitularView = () => {
                 </TitularStats>
             </TitularHeader>
 
-            {/* Cabeçalho da Lista de Contratos */}
-            <ContractsGrid>
-                <label>ID Túmulo</label>
-                <label>Data Início</label>
-                <label>Vigência</label>
-                <label>Valor</label>
-                <label>Status</label>
-            </ContractsGrid>
+            {/* Navegação por Abas */}
+            <TabsWrapper>
+                <TabButton 
+                    $active={activeTab === 'contratos'} 
+                    onClick={() => setActiveTab('contratos')}
+                >
+                    Contratos ({contratos.length})
+                </TabButton>
+                <TabButton 
+                    $active={activeTab === 'tumulos'} 
+                    onClick={() => setActiveTab('tumulos')}
+                >
+                    Túmulos ({tumulos.length})
+                </TabButton>
+                <TabButton 
+                    $active={activeTab === 'falecidos'} 
+                    onClick={() => setActiveTab('falecidos')}
+                >
+                    Falecidos ({falecidos.length})
+                </TabButton>
+            </TabsWrapper>
 
-            <ContractsWrapper>
-                {!isLoading && 
-                    contratos.map((contrato, index) => (
-                        <ContractRow key={`${contrato.cpf}-${contrato.id_tumulo}`} $isEven={index % 2 === 0}>
-                            <p>#{contrato.id_tumulo}</p>
-                            <p>{formatDate(contrato.data_inicio)}</p>
-                            <p>{contrato.prazo_vigencia} meses</p>
-                            <p>{formatCurrency(contrato.valor)}</p>
-                            <StatusBadge $status={contrato.status}>
-                                {contrato.status}
-                            </StatusBadge>
-                        </ContractRow>
-                    ))
-                }
+            {/* CONTEÚDO DA ABA: CONTRATOS */}
+            {activeTab === 'contratos' && (
+                <>
+                    <GridHeader $columns="0.8fr 1fr 1fr 1fr 1fr">
+                        <label>ID Túmulo</label>
+                        <label>Data Início</label>
+                        <label>Vigência</label>
+                        <label>Valor</label>
+                        <label>Status</label>
+                    </GridHeader>
 
-                {!isLoading && contratos.length === 0 && (
-                     <div className="emptyMsg">
-                         <p>Nenhum contrato vinculado a este titular.</p>
-                     </div>
-                )}
+                    <ListWrapper>
+                        {!isLoading && contratos.map((contrato, index) => (
+                            <RowItem key={`${contrato.cpf}-${contrato.id_tumulo}`} $isEven={index % 2 === 0} $columns="0.8fr 1fr 1fr 1fr 1fr">
+                                <p>#{contrato.id_tumulo}</p>
+                                <p>{formatDate(contrato.data_inicio)}</p>
+                                <p>{contrato.prazo_vigencia} meses</p>
+                                <p>{formatCurrency(contrato.valor)}</p>
+                                <StatusBadge $status={contrato.status}>
+                                    {contrato.status}
+                                </StatusBadge>
+                            </RowItem>
+                        ))}
+                        {!isLoading && contratos.length === 0 && <div className="emptyMsg"><p>Nenhum contrato.</p></div>}
+                    </ListWrapper>
+                </>
+            )}
 
-                {isLoading && 
-                     <div className="loadingWrapper">
-                      </div>
-                }
-            </ContractsWrapper>
+            {/* CONTEÚDO DA ABA: TÚMULOS */}
+            {activeTab === 'tumulos' && (
+                <>
+                    <GridHeader $columns="0.5fr 1.5fr 1fr 1fr">
+                        <label>ID</label>
+                        <label>Tipo</label>
+                        <label>Status</label>
+                        <label>Capacidade</label>
+                    </GridHeader>
+
+                    <ListWrapper>
+                        {!isLoading && tumulos.map((tumulo, index) => (
+                            <RowItem key={tumulo.id_tumulo} $isEven={index % 2 === 0} $columns="0.5fr 1.5fr 1fr 1fr">
+                                <p>#{tumulo.id_tumulo}</p>
+                                <p>{tumulo.tipo}</p>
+                                <p>{tumulo.status}</p>
+                                <p>{tumulo.capacidade}</p>
+                            </RowItem>
+                        ))}
+                        {!isLoading && tumulos.length === 0 && <div className="emptyMsg"><p>Nenhum túmulo vinculado.</p></div>}
+                    </ListWrapper>
+                </>
+            )}
+
+            {/* CONTEÚDO DA ABA: FALECIDOS */}
+            {activeTab === 'falecidos' && (
+                <>
+                    <GridHeader $columns="2fr 0.8fr 1fr 1fr 1.5fr">
+                        <label>Nome</label>
+                        <label>Túmulo</label>
+                        <label>Nascimento</label>
+                        <label>Falecimento</label>
+                        <label>Motivo</label>
+                    </GridHeader>
+
+                    <ListWrapper>
+                        {!isLoading && falecidos.map((falecido, index) => (
+                            <RowItem key={`${falecido.id_tumulo}-${falecido.nome}`} $isEven={index % 2 === 0} $columns="2fr 0.8fr 1fr 1fr 1.5fr">
+                                <p title={falecido.nome}>{falecido.nome}</p>
+                                <p>#{falecido.id_tumulo}</p>
+                                <p>{formatDate(falecido.data_nascimento)}</p>
+                                <p>{formatDate(falecido.data_falecimento)}</p>
+                                <p title={falecido.motivo}>{falecido.motivo || '-'}</p>
+                            </RowItem>
+                        ))}
+                        {!isLoading && falecidos.length === 0 && <div className="emptyMsg"><p>Nenhum falecido registrado.</p></div>}
+                    </ListWrapper>
+                </>
+            )}
+
         </TitularContainer>
         </>
     )
@@ -173,29 +268,54 @@ const TitularStats = styled.div`
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    background-color: var(--brand-primary);
+    background-color: var(--background-neutrals-inverse);
     padding: 1rem 1.5rem;
-    border-radius: 8px;
 
     p {
         font: 700 0.875rem 'At Aero Bold';
-        color: #fff;
+        color: var(--content-neutrals-inverse); 
     }
 
     h4 {
         font: 700 2rem 'At Aero Bold';
-        color: #fff;
+        color: var(--content-neutrals-inverse);
         margin: 0;
     }
 `
 
-const ContractsGrid = styled.div`
+// --- TABS STYLES ---
+
+const TabsWrapper = styled.div`
+    width: 100%;
+    display: flex;
+    gap: 2rem;
+    border-bottom: 1px solid var(--outline-neutrals-secondary);
+    margin-bottom: 0.5rem;
+`
+
+const TabButton = styled.button<{ $active: boolean }>`
+    background: none;
+    border: none;
+    padding-bottom: 0.75rem;
+    font: ${({ $active }) => $active ? "700 1.125rem 'At Aero Bold'" : "700 1.125rem 'At Aero'"};
+    color: ${({ $active }) => $active ? 'var(--content-neutrals-secondary)' : 'var(--content-neutrals-tertiary)'};
+    border-bottom: 2px solid ${({ $active }) => $active ? 'var(--background-neutrals-inverse)' : 'transparent'};
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        color: var(--content-neutrals-secondary);
+    }
+`
+
+// --- LIST STYLES (Reusable for all tabs) ---
+
+const GridHeader = styled.div<{ $columns: string }>`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1rem 0.5rem;
     display: grid;
-    /* ID | Data | Vigência | Valor | Status */
-    grid-template-columns: 0.8fr 1fr 1fr 1fr 1fr; 
+    grid-template-columns: ${({ $columns }) => $columns};
     grid-column-gap: 1.5rem;
     align-items: center;
 
@@ -204,7 +324,7 @@ const ContractsGrid = styled.div`
     }
 `
 
-const ContractsWrapper = styled.div`
+const ListWrapper = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -213,34 +333,30 @@ const ContractsWrapper = styled.div`
         padding: 3rem;
         display: flex;
         justify-content: center;
-    }
-
-    .loadingWrapper {
-        padding: 3rem;
-        display: flex;
-        justify-content: center;
+        color: var(--content-neutrals-secondary);
     }
 `
 
-const ContractRow = styled.div<{ $isEven: boolean }>`
+const RowItem = styled.div<{ $isEven: boolean, $columns: string }>`
     display: grid;
-    grid-template-columns: 0.8fr 1fr 1fr 1fr 1fr; 
+    grid-template-columns: ${({ $columns }) => $columns};
     grid-column-gap: 1.5rem;
     min-height: 4rem;
     padding: 0.75rem 0.5rem; 
     align-items: center;
     background-color: ${({$isEven}) => $isEven ? 'var(--background-neutrals-secondary)' : 'transparent'};
-    border-radius: 4px;
 
     p {
         font: 400 1rem 'At Aero';
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 `
 
-const StatusBadge = styled.span<{ $status: 'Ativo' | 'Reservado' }>`
+const StatusBadge = styled.span<{ $status: string }>`
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    border-radius: 12px;
     font-size: 0.875rem;
     font-weight: 700;
     color: #fff;
