@@ -1,263 +1,323 @@
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { useForm } from "react-hook-form";
 import styled from 'styled-components';
+import api from '../../services/api';
+import { ITitularInput } from '../types'; // Certifique-se que o caminho está correto
 
 // components
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
+import TitularRow from '@/components/PalestranteRow';
 
-const Registered = () => {
+import Image from 'next/image';
 
-    const router = useRouter();
-    const { register, getValues, setError, formState: { errors }, handleSubmit, reset } = useForm();
+const Titulares = () => {
 
-    const [accessAllowed, setAccessAllowed] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [students, setStudents] = useState([]);
+    // Tipando o estado com a interface fornecida
+    const [titulares, setTitulares] = useState<ITitularInput[]>([])
+    const [filteredTitulares, setFilteredTitulares] = useState<ITitularInput[]>([])
+    
+    const [isOpen, setisOpen] = useState(false) // Para abrir modal de criação
+    const [isLoading, setisLoading] = useState(true)
 
+    // Paginação e Filtro
+    const [currentPage, setCurrentPage] = useState(1)
+    const [query, setQuery] = useState('')
+    const maxRows = 11;
+
+    const getTitulares = async () => {
+        if (!isLoading) setisLoading(true);
+
+        try {
+            // A chamada deve corresponder à sua API (api.getTitulares)
+            const { data } = await api.getTitulares()
+            if (data) {
+                setTitulares(data);
+                setFilteredTitulares(data);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar titulares:", error)
+        } finally {
+            setisLoading(false)
+        }
+    }
+
+    // Busca inicial
+    useEffect(() => {
+        getTitulares()
+    }, [])
+
+    // Lógica de Filtro (Busca por Nome ou CPF)
+    useEffect(() => {
+        const lowerQuery = query.toLowerCase();
+        const filtered = titulares.filter((titular) => 
+            titular.nome.toLowerCase().includes(lowerQuery) || 
+            titular.cpf.includes(lowerQuery)
+        );
+        setFilteredTitulares(filtered);
+        setCurrentPage(1); // Reseta para página 1 ao filtrar
+    }, [query, titulares])
+
+    // Lógica de Paginação
+    const totalPages = Math.ceil(filteredTitulares.length / maxRows)
+    const currentTitulares = filteredTitulares.slice(
+        (currentPage - 1) * maxRows,
+        currentPage * maxRows
+    )
 
     return (
         <>
+            <SideBar name={"Titulares"} />
+            <TitularesContainer>
+                <TitularesTitle>
+                    <h5>Titulares</h5>
 
-            <SideBar name='Titulares' />
-            <RegisteredWrapper>
-                <div className='section-container'>
+                    <TitularesInteractions>
+                        <TitularesFilter>
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Buscar por nome ou CPF..."
+                            />
+                            <Button onClick={() => getTitulares()}>Atualizar</Button>
+                        </TitularesFilter>
+                        <span />
+                        <SecondaryButton onClick={() => setisOpen(true)}>
+                            + Adicionar
+                        </SecondaryButton>
 
-                    <h5>Inscritos</h5>
+                    </TitularesInteractions>
 
-                    {accessAllowed &&
-                        <FormWrapper>
-                            <form>
-                                {!isLoading &&
-                                    <>
-                                        <InputBox>
-                                            <div className='input-btn'>
-                                                <div className='form-input'>
-                                                    <input id='name' type='text' placeholder='Busque por nome...' className={`${errors.name && 'error-border'}`}
-                                                        {...register("name", { required: true })} />
-                                                </div>
-                                                {!students || students.length == 0 ?
-                                                    <Button> Consultar </Button>
-                                                    :
-                                                    <SecondaryButton type="button" onClick={() => clearUserInfo()}> Limpar consulta </SecondaryButton>
-                                                }
-                                            </div>
-                                        </InputBox>
-                                    </>
-                                }
+                </TitularesTitle>
 
-                                {isLoading &&
-                                    <Loading>
-                                        <img src='./loading.svg' alt='SSI 2025 - Loading' />
-                                    </Loading>
-                                }
-                            </form>
-                        </FormWrapper>
+                {/* Cabeçalho da Tabela */}
+                <TitularesGrid>
+                    <label>CPF</label>
+                    <label>Nome</label>
+                    <label>Endereço</label>
+                    <label>Telefone</label>
+                </TitularesGrid>
+
+                <TitularesWrapper>
+                    {!isLoading &&
+                        currentTitulares.map((titular, index) => {
+                            // Renderiza a linha. 
+                            // Nota: Você deve criar/adaptar o componente TitularRow para aceitar estas props
+                            // e usar o mesmo Grid CSS definido abaixo.
+                            return (
+                                <TitularRow
+                                    key={titular.cpf} // CPF é chave única
+                                    isEven={index % 2 === 0}
+                                    cpf={titular.cpf}
+                                    nome={titular.nome}
+                                    endereco={titular.endereco || '-'}
+                                    telefone={titular.telefone || '-'}
+                                    // Funções de update/delete podem ser passadas aqui
+                                    updateList={getTitulares} 
+                                />
+                            )
+                        })
                     }
-                </div>
 
-                {!isLoading &&
-                    <StudentsListSection>
-                        <StudentsTable>
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>Email</th>
-                                    <th>Código SSI</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {students && students.map((student, index) => (
-                                    <tr
-                                        key={student.id}
-                                        style={{ backgroundColor: index % 2 === 0 ? 'var(--color-neutral-800)' : 'transparent' }}
-                                    >
-                                        <td>{student.name}</td>
-                                        <td>{student.email}</td>
-                                        <td>{student.code}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </StudentsTable>
-                    </StudentsListSection>
-                }
-            </RegisteredWrapper>
+                    {!isLoading && filteredTitulares.length === 0 &&
+                        <p className='allRow noTitulares'>Nenhum titular encontrado :(</p>
+                    }
+
+                    {isLoading &&
+                        <div className="allRow">
+         
+                        </div>
+                    }
+
+                </TitularesWrapper>
+
+                <TitularesFooter>
+                    <p>{filteredTitulares.length} titulares encontrados</p>
+                    {!isLoading && filteredTitulares.length > 0 &&
+                        <Pagination>
+                            <Button
+                                className={currentPage === 1 ? 'noInteraction' : ''}
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            >{"<"}</Button>
+                            
+                            {/* Lógica simples de paginação (pode ser otimizada para muitos números) */}
+                            {Array.from({ length: totalPages }, (_, i) =>
+                                <Button
+                                    className={currentPage === i + 1 ? '' : 'disabled'}
+                                    key={i + 1}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                >{i + 1}</Button>
+                            )}
+
+                            <Button
+                                className={currentPage === totalPages ? 'noInteraction' : ''}
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            >{">"}</Button>
+                        </Pagination>
+                    }
+                </TitularesFooter>
+            </TitularesContainer>
         </>
     )
 }
 
-export default Registered;
+export default Titulares;
 
+// ==========================================
+// STYLED COMPONENTS
+// ==========================================
 
-const Loading = styled.figure`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img {
-        width: 50%;
-        max-width: 250px;
-    }
-`
-
-const RegisteredWrapper = styled.section`
-    margin-top: 3.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .section-container {
-        width: 100%;
-        max-width: 1328px;
-        height: fit-content;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1.5rem;
-
-        h5 {
-            width: 100%;
-        }
-    }
-`
-
-const FormWrapper = styled.div`
-    --color-invalid: #F24822;
-    --color-valid: #14AE5C;
+const TitularesContainer = styled.div`
+    padding: 1.5rem;
     width: 100%;
-
-    form {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-
-        p {
-            font: 700 1rem/1.5rem 'AT Aero Bold';
-            text-align: left;
-            width: 100%;
-        }
-
-        .input-btn {
-            display: flex;
-            width: 100%;
-            gap: .5rem;
-        }
-
-        button {
-            padding-inline: 1.5rem;
-            width: fit-content;
-        }
-    }
-
-    .form-input {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 0.5rem;
-
-        border: 2px solid var(--content-neutrals-primary);
-        background: transparent;
-        background-clip: padding-box;
-        color: var(--content-neutrals-primary);
-
-        &:has(input[type=text]:focus):not(:has(.error-border)):not(:has(.token-registered)) {
-            border-color: var(--color-primary);
-        }
-
-        &:has(input[type=password]:focus):not(:has(.error-border)):not(:has(.token-registered)) {
-            border-color: var(--color-primary);
-        }
-
-        &:has(.error-border) {
-            border-color: var(--color-invalid);
-        }
-
-        &:has(.token-registered) {
-            border-color: var(--color-valid);
-        }
-
-        input[type=text], input[type=password],  select {
-            width: 95%;
-            border: none;
-            background-color: transparent;
-            color: var(--content-neutrals-primary);
-            font: 400 1rem/1.5rem 'AT Aero';
-        }
-
-        select {
-            color: var(--content-neutrals-primary);
-        }
-
-        ::placeholder {
-            color: var(--content-neutrals-primary);
-            font: 400 1rem/1.5rem 'AT Aero';
-        }
-
-        ::-ms-input-placeholder {
-            color: var(--content-neutrals-primary);
-            font: 400 1rem/1.5rem 'AT Aero';
-        }
-    }
-
-    /* Firefox */
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
-
-    span {
-        font: 400 0.875rem/1rem 'AT Aero Bold';
-        color: var(--color-invalid);
-    }
-`
-
-const InputBox = styled.div`
+    height: 100%;
+    margin: auto;
+    max-width: 1920px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    position: relative;
+
+    *{
+        color: var(--content-neutrals-primary);
+    }
+`
+
+const TitularesTitle = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
+    margin-bottom: 1.5rem;
+`
+
+const TitularesFilter = styled.div`
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    align-items: center;
+    justify-content: flex-end;
+    margin-left: 1.5rem;
+
+    input {
+        font: 400 1rem/1.5rem 'At Aero';
+        width: 100%;
+        max-width: 30rem;
+        padding: 0.75rem 1rem;
+        background-color: transparent;
+        transition: all 200ms ease-in-out;
+        border: 1px solid var(--content-neutrals-primary);
+        border-radius: 4px;
+
+        &:hover, &:focus-visible{
+            background-color: var(--background-neutrals-secondary);
+        }
+
+        &:focus-visible{
+            border: 1px solid var(--brand-primary);
+            outline: none;
+        }
+    }
+
+    button {
+        max-width: 8rem;
+    }
+`
+
+const TitularesInteractions = styled.div`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+
+    span {
+        height: 3rem;
+        border-left: 1px solid var(--outline-neutrals-secondary);
+    }
+
+    button {
+        max-width: 10rem; /* Aumentei um pouco para caber "+ Adicionar" */
+    }
+`
+
+// GRID DEFINITION: Alterado para comportar as 5 colunas do Titular
+// Layout sugerido: CPF (fixo), Nome (flex), RG (fixo), Endereço (flex maior), Telefone (fixo)
+const TitularesGrid = styled.div`
+    width: 100%;
+    border-block: 1px solid var(--outline-neutrals-secondary);
+    padding: 1.5rem 0.5rem;
+    display: grid;
+    /* CPF | Nome | Endereço | Telefone */
+    grid-template-columns: 1fr 2fr 2.5fr 1fr; 
+    grid-column-gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
 
     label {
-        font: 700 1.125rem/1.5rem 'AT Aero Bold';
+        font: 700 1.125rem/1.5rem 'At Aero Bold';
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+`
+
+const TitularesWrapper = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--outline-neutrals-secondary);
+    min-height: 200px; /* Evita pulo de layout no loading */
+
+    .noTitulares{
+        text-align: center;
+        font: 700 1.125rem/1.5rem 'At Aero Bold';
+        margin-top: 2rem;
+    }
+
+    .allRow{
+        display: flex;
+        justify-content: center;
+        align-items: center;
         width: 100%;
-        margin-bottom: .5rem;
+        padding: 5rem;
     }
 `
 
-const StudentsListSection = styled.section`
+const TitularesFooter = styled.footer`
     width: 100%;
-    overflow-x: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    p {
+        font: 700 1rem/1.5rem 'At Aero Bold';
+    }
 `
 
-const StudentsTable = styled.table`
-    width: 100%;
-    max-width: 1328px;
-    border-collapse: separate;
-    border-spacing: 0 2rem;
-    
+const Pagination = styled.div`
+    display: flex;
+    gap: 0.75rem;
 
-    thead {
-        border-block: 1px solid var(--color-neutral-secondary);
-        background: transparent;
+    button{
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
     }
-    
-    th {
-        font: 700 1rem/1.5rem 'AT Aero Bold';
-        border-block: 1px solid var(--color-neutral-secondary);
-        padding-block: 1rem;
-        text-align: left;
+    .noInteraction{
+        color: var(--content-neutrals-primary);
+        opacity: 0.5;
+        pointer-events: none;
+    }
 
-        &:first-child {
-            padding-left: 2rem;
-        }
+    .disabled{
+        background-color: transparent;
+        border: 1px solid var(--content-neutrals-primary);
     }
 `

@@ -1,11 +1,13 @@
 import express from "express";
 import { Pool } from "pg";
-
+import cors from 'cors'
 import readRoutes from './api/read.js';
 import createRoutes from './api/create.js';
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
 
 // Conexão com PostgreSQL
 const db = new Pool({
@@ -27,8 +29,12 @@ app.get("/tumulo", readRoutes.getTumulos(db));
 app.get("/tumulo/filtro", readRoutes.getTumuloFiltro(db));
 app.get("/tumulo/:id_tumulo", readRoutes.getTumuloPorId(db));
 
+app.get("/falecido", readRoutes.getFalecidos(db));
+app.get("/falecido/filtro", readRoutes.getFalecidosFiltro(db));
+app.get("/falecido/:cpf", readRoutes.getFalecidoPorCpf(db));
+
 app.get("/fornecedor", readRoutes.getFornecedores(db))
-app.get("/fornecedor/filtro", readRoutes.getContratoFiltro(db))
+app.get("/fornecedor/filtro", readRoutes.getFornecedoresFiltro(db))
 
 app.get("/funcionario", readRoutes.getFuncionarios(db))
 app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
@@ -36,6 +42,18 @@ app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
 app.get("/evento", readRoutes.getEventos(db));
 app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
 app.get("/evento/:id", readRoutes.getEventoPorId(db));
+
+app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
+app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));
+app.get("/maisTrabalhadores", readRoutes.getFuncionariosMaisTrabalhadores(db));
+app.get("/tumulosMaisOcupados", readRoutes.getTumulosMaisOcupados(db));
+app.get("/localizacaoContratosAtivos", readRoutes.getLocalizacaoContratosAtivos(db));
+app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorVolume(db));
+app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
+app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
+app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
+
+
 
 
 

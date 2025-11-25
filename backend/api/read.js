@@ -458,12 +458,228 @@ const getTumuloFiltro = (db) => {
   };
 };
 
+const getContratosAVencer = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query("SELECT c.CPF, t.nome, c.ID_tumulo, c.data_inicio, (c.data_inicio + c.prazo_vigencia) AS data_fim FROM contrato c JOIN titular t ON c.CPF = t.CPF WHERE (c.data_inicio + c.prazo_vigencia) BETWEEN CURRENT_DATE AND CURRENT_DATE + 30;");
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao achar contratos vencendo" });
+    }
+  };
+}
+
+// 1. Custo total dos eventos (evento + compras)
+const getCustoTotalEventos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          e.ID_evento,
+          e.lugar,
+          e.dia,
+          e.valor AS valor_evento,
+          COALESCE(SUM(c.valor), 0) AS total_compras,
+          e.valor + COALESCE(SUM(c.valor), 0) AS custo_total
+        FROM evento e
+        LEFT JOIN compra c ON e.ID_evento = c.ID_evento
+        GROUP BY e.ID_evento
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular custos dos eventos" });
+    }
+  };
+};
+
+// 2. Funcionários que mais trabalharam em eventos
+const getFuncionariosMaisTrabalhadores = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          f.CPF,
+          f.nome,
+          f.funcao,
+          f.horas_semanais,
+          COUNT(fe.ID_evento) AS total_eventos
+        FROM funcionario f
+        LEFT JOIN funcionario_evento fe ON f.CPF = fe.CPF
+        GROUP BY f.CPF
+        ORDER BY total_eventos DESC
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar funcionários" });
+    }
+  };
+};
+
+// 3. Túmulos mais ocupados
+const getTumulosMaisOcupados = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          t.ID_tumulo,
+          t.tipo,
+          t.capacidade,
+          COUNT(f.CPF) AS total_falecidos
+        FROM tumulo t
+        LEFT JOIN falecido f ON t.ID_tumulo = f.ID_tumulo
+        GROUP BY t.ID_tumulo
+        ORDER BY total_falecidos DESC
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar túmulos" });
+    }
+  };
+};
+
+// 4. Localização com mais contratos ativos
+const getLocalizacaoContratosAtivos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          lt.quadra,
+          lt.setor,
+          lt.numero,
+          COUNT(c.CPF) AS contratos_ativos
+        FROM localizacao_tumulo lt
+        JOIN contrato c ON c.ID_tumulo = lt.ID_tumulo
+        WHERE c.status = 'Ativo'
+        GROUP BY lt.quadra, lt.setor, lt.numero
+        ORDER BY contratos_ativos DESC
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar localizações" });
+    }
+  };
+};
+
+// 5. Fornecedores com maior volume de compras
+const getFornecedoresMaiorGastos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          f.CNPJ,
+          f.nome,
+          SUM(c.valor) AS total_gasto
+        FROM fornecedor f
+        JOIN compra c ON f.CNPJ = c.CNPJ
+        GROUP BY f.CNPJ
+        ORDER BY total_gasto DESC
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar fornecedores" });
+    }
+  };
+};
+
+// 6. Estatísticas de compras por item
+const getEstatisticasCompras = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          item,
+          COUNT(*) AS qtd_compras,
+          SUM(valor) AS soma_valor,
+          AVG(valor) AS valor_medio,
+          MAX(valor) AS maior_compra
+        FROM compra
+        GROUP BY item
+        ORDER BY soma_valor DESC
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular estatísticas" });
+    }
+  };
+};
+
+// 7. Estatísticas de falecidos por ano
+const getEstatisticasFalecidos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          EXTRACT(YEAR FROM data_falecimento) AS ano,
+          COUNT(*) AS total_falecidos,
+          AVG(EXTRACT(YEAR FROM data_falecimento) - EXTRACT(YEAR FROM data_nascimento)) AS idade_media
+        FROM falecido
+        GROUP BY EXTRACT(YEAR FROM data_falecimento)
+        ORDER BY ano
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular estatísticas" });
+    }
+  };
+};
+
+
+// 8. Fornecedor mais usado por tipo de evento
+const getFornecedorMaisUsado = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          tipo_evento,
+          CNPJ,
+          nome_fornecedor,
+          total_usos
+        FROM (
+          SELECT 
+            te.tipo_evento,
+            f.CNPJ,
+            f.nome AS nome_fornecedor,
+            COUNT(*) AS total_usos,
+            ROW_NUMBER() OVER (PARTITION BY te.tipo_evento ORDER BY COUNT(*) DESC) AS rn
+          FROM fornecedor f
+          JOIN compra c ON f.CNPJ = c.CNPJ
+          JOIN (
+            SELECT ID_evento, 'sepultamento' AS tipo_evento FROM evento_sepultamento
+            UNION ALL
+            SELECT ID_evento, 'velorio' FROM evento_velorio
+            UNION ALL
+            SELECT ID_evento, 'cremacao' FROM evento_cremacao
+          ) te ON te.ID_evento = c.ID_evento
+          GROUP BY te.tipo_evento, f.CNPJ, f.nome
+        ) ranking
+        WHERE rn = 1
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar fornecedores" });
+    }
+  };
+};
 
 export default {
   // Contratos
   getContratos,
   getContratoPorCpf,
   getContratoFiltro,
+
+  // Falecidos
+  getFalecidos,
+  getFalecidoPorCpf,
+  getFalecidosFiltro,
 
   // Eventos
   getEventos,
@@ -472,7 +688,7 @@ export default {
 
   // Fornecedores
   getFornecedores,
-  getContratoFiltro,
+  getFornecedoresFiltro,
 
   // Funcionarios
   getFuncionarios,
@@ -485,5 +701,17 @@ export default {
   // Túmulos
   getTumulos,
   getTumuloPorId,
-  getTumuloFiltro
+  getTumuloFiltro,
+
+  //Avancados
+  getContratosAVencer,
+  getCustoTotalEventos,
+  getFuncionariosMaisTrabalhadores,
+  getTumulosMaisOcupados,
+  getLocalizacaoContratosAtivos,
+  getFornecedoresMaiorGastos,
+  getEstatisticasCompras,
+  getEstatisticasFalecidos,
+  getFornecedorMaisUsado
+
 };
