@@ -13,8 +13,8 @@ CREATE TABLE titular (
     CPF CHAR(11) PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     endereco VARCHAR(200),
-    email VARCHAR(100),
-    telefone VARCHAR(15)
+    email VARCHAR(100) UNIQUE,
+    telefone VARCHAR(15) UNIQUE
 );
 
 CREATE TABLE tumulo (
@@ -26,7 +26,7 @@ CREATE TABLE tumulo (
 );
 
 CREATE TABLE localizacao_tumulo (
-    ID_tumulo INT,
+    ID_tumulo INT UNIQUE,
     quadra VARCHAR(10),
     setor VARCHAR(10),
     numero INT,
@@ -35,8 +35,8 @@ CREATE TABLE localizacao_tumulo (
 );
 
 CREATE TABLE contrato ( -----------------
-    CPF CHAR(11),
-    ID_tumulo INT,
+    CPF CHAR(11) UNIQUE,
+    ID_tumulo INT UNIQUE,
     data_inicio DATE,
     prazo_vigencia INT,
     valor NUMERIC(10,2),
@@ -47,12 +47,12 @@ CREATE TABLE contrato ( -----------------
 );
 
 CREATE TABLE falecido ( ------------
-    CPF CHAR(11),
+    CPF CHAR(11)UNIQUE,
     nome VARCHAR(100) NOT NULL,
     data_falecimento DATE,
     data_nascimento DATE,
     motivo VARCHAR(200),
-	ID_tumulo INT,
+	ID_tumulo INT UNIQUE,
 	PRIMARY KEY (CPF, nome),
 	FOREIGN KEY (CPF) REFERENCES titular(CPF),
 	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
@@ -60,7 +60,7 @@ CREATE TABLE falecido ( ------------
 
 CREATE TABLE evento (
     ID_evento INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    CPF CHAR(11),
+    CPF CHAR(11) UNIQUE,
     nome VARCHAR(100) NOT NULL,
     lugar VARCHAR(100),
     dia DATE,
@@ -77,7 +77,7 @@ CREATE TABLE fornecedor (
 );
 
 CREATE TABLE telefone_fornecedor (
-    CNPJ CHAR(14),
+    CNPJ CHAR(14) UNIQUE,
     telefone VARCHAR(15),
     PRIMARY KEY (CNPJ, telefone),
     FOREIGN KEY (CNPJ) REFERENCES fornecedor(CNPJ)
@@ -85,7 +85,7 @@ CREATE TABLE telefone_fornecedor (
 
 CREATE TABLE funcionario (
     CPF CHAR(11) PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
+    nome VARCHAR(100) NOT NULL UNIQUE,
     funcao VARCHAR(50),
     modelo_contrato VARCHAR(30),
     horas_semanais INT,
@@ -93,8 +93,8 @@ CREATE TABLE funcionario (
 );
 
 CREATE TABLE compra (
-    CNPJ CHAR(14),
-	ID_evento INT,
+    CNPJ CHAR(14) UNIQUE,
+	ID_evento INT UNIQUE,
     valor NUMERIC(10,2),
     item VARCHAR(100),
     quantidade INT,
@@ -106,29 +106,29 @@ CREATE TABLE compra (
 );
 
 CREATE TABLE funcionario_evento (
-    CPF CHAR(11),
-    ID_evento INT,
+    CPF CHAR(11) UNIQUE,
+    ID_evento INT UNIQUE,
     PRIMARY KEY (CPF, ID_evento),
     FOREIGN KEY (CPF) REFERENCES funcionario(CPF),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
 
 CREATE TABLE evento_sepultamento (
-    ID_evento INT,
+    ID_evento INT UNIQUE,
     local_destino VARCHAR (100),
     PRIMARY KEY (id_evento, local_destino),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
 
 CREATE TABLE evento_cremacao (
-    ID_evento INT,
+    ID_evento INT UNIQUE,
     forno INT,
     PRIMARY KEY (ID_evento, forno),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
 
 CREATE TABLE evento_velorio (
-    ID_evento INT,
+    ID_evento INT UNIQUE,
     sala INT,
     PRIMARY KEY (ID_evento, sala),
     FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
