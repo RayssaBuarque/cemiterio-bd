@@ -8,8 +8,12 @@ export interface IFiltros extends Record<string, any> {
 
 // === CONTRATOS ===
 export interface IContrato {
-    id: number;
-    data_assinatura: string;
+    cpf: string;
+    id_tumulo: number;
+    data_inicio: number;
+    valor: number;
+    prazo_vigencia: number;
+    status: 'Ativo' | 'Reservado';
 }
 
 // === TITULARES ===
@@ -41,9 +45,8 @@ export interface ITumuloInput {
 // === FORNECEDORES ===
 export interface IFornecedorInput {
     cnpj: string;
-    razao_social: string;
-    nome_fantasia?: string;
-    contato?: string;
+    nome: string;
+    endereco: string;
 }
 
 // === FUNCIONÁRIOS ===

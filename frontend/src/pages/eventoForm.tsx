@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
-
 // API & Types
 import api from "../services/api";
 import { IEventoInput, IFuncionarioInput } from "../types";
@@ -19,12 +18,17 @@ const EventForm = () => {
     const { id } = router.query;
 
     const [isLoading, setIsLoading] = useState(true);
-    // Estado para controlar os funcionários disponíveis no select (vindos da API)
+    
+    // Funcionários que aparecerão no select (Livres + Já alocados neste evento)
     const [availableFuncionarios, setAvailableFuncionarios] = useState<IFuncionarioInput[]>([]);
-    // Estado para controlar os funcionários selecionados visualmente ("id|nome")
+    
+    // Funcionários selecionados visualmente ("id|nome")
     const [selectedFuncionarios, setSelectedFuncionarios] = useState<string[]>([]);
+    
+    // Guarda os funcionários originais para garantir que eles apareçam na lista de disponíveis durante a edição
+    const [originalFuncionarios, setOriginalFuncionarios] = useState<IFuncionarioInput[]>([]);
 
-    const { register, handleSubmit, watch, setValue, reset } = useForm<IEventoInput>();
+    const { register, handleSubmit, watch, reset } = useForm<IEventoInput>();
 
     // Observa mudanças para disparar a busca de disponibilidade
     const watchedDia = watch("dia");
@@ -32,83 +36,98 @@ const EventForm = () => {
 
     // 1. Busca dados do evento se for edição
     useEffect(() => {
-        const getEventData = async () => {
-            if (!router.isReady) return;
+        if (!router.isReady) return;
 
+        const loadEventData = async () => {
             if (!id) {
                 setIsLoading(false);
                 return;
             }
 
             try {
-                const { data } = await api.getEventoPorId(id as string)
-                if (data) {
-                    // Preenche os campos do React Hook Form
-                    // Formata a data para YYYY-MM-DD se necessário
-                    const formattedDate = data.dia ? data.dia.split('T')[0] : '';
+                // Busca dados do evento
+                const { data: eventData } = await api.getEventoPorId(id as string);
+                
+                if (eventData) {
+                    const formattedDate = eventData.dia ? eventData.dia.split('T')[0] : '';
                     
                     reset({
-                        lugar: data.lugar,
+                        lugar: eventData.lugar,
                         dia: formattedDate,
-                        horario: data.horario,
-                        valor: data.valor,
+                        horario: eventData.horario,
+                        valor: eventData.valor,
                     });
-                    
-                    try{
-                        const res = await api.getFuncionarioByEvento(id as string);
-                        // Se o evento já tiver funcionários alocados, popula o estado
-                        // Assumindo que data.funcionarios seja um array de objetos { cpf, nome, ... }
-                        if (res.data && Array.isArray(res.data)) {
-                            const formattedSelected = res.data.map((f: any) => `${f.cpf}|${f.nome}`);
+
+                    // Busca funcionários alocados com tratamento seguro de erro
+                    try {
+                        const { data: funcData } = await api.getFuncionarioByEvento(id as string);
+                        
+                        if (funcData && Array.isArray(funcData)) {
+                            setOriginalFuncionarios(funcData);
+                            const formattedSelected = funcData.map((f: any) => `${f.cpf}|${f.nome}`);
                             setSelectedFuncionarios(formattedSelected);
+                        } else {
+                            setOriginalFuncionarios([]);
+                            setSelectedFuncionarios([]);
                         }
-                    }
-                    catch(err){
-                        console.error("Nenhum funcionário alocado para este evento ou erro na busca", err);
+                    } catch (funcErr: any) {
+                        // Se for 404, significa apenas que não tem funcionários alocados ainda
+                        if (funcErr.response && funcErr.response.status === 404) {
+                            setOriginalFuncionarios([]);
+                            setSelectedFuncionarios([]);
+                        } else {
+                            console.error("Erro ao buscar funcionários do evento:", funcErr);
+                        }
                     }
                 }
             } catch (err) {
-                console.error("Erro ao buscar evento", err);
+                console.error("Erro ao carregar evento:", err);
                 alert("Erro ao carregar dados do evento.");
             } finally {
                 setIsLoading(false);
             }
         };
 
-        getEventData();
+        loadEventData();
     }, [router.isReady, id, reset]);
 
     // 2. Busca funcionários disponíveis quando Dia ou Horário mudam
     useEffect(() => {
         const fetchAvailableTeam = async () => {
-            if (watchedDia && watchedHorario) {
-                try {
-                    // Chama a API passando dia e horário para filtrar quem está livre
-                    // Nota: Se for edição, a API idealmente deve retornar também os que já estão neste evento
-                    const { data } = await api.getFuncionariosLivres(watchedDia, watchedHorario);
-                    setAvailableFuncionarios(data || []);
-                } catch (err) {
-                    console.error("Erro ao buscar equipe disponível", err);
-                    // Não limpa o array drasticamente para não quebrar a UX caso seja um erro temporário,
-                    // mas em um cenário real poderia setar vazio ou mostrar erro.
+            if (!watchedDia || !watchedHorario) return;
+            
+            // Validação básica para evitar chamadas com datas incompletas
+            if (watchedDia.length !== 10 || watchedHorario.length !== 5) return;
+
+            try {
+                const { data } = await api.getFuncionariosLivres(watchedDia, watchedHorario);
+                let combinedList = data || [];
+
+                // Se estivermos editando, reinserimos os funcionários originais na lista de disponíveis
+                // Isso corrige o problema deles sumirem do select porque o backend os considera "ocupados" com este evento
+                if (originalFuncionarios.length > 0) {
+                    const currentIds = new Set(combinedList.map((f: IFuncionarioInput) => f.cpf));
+                    const missingOriginals = originalFuncionarios.filter(orig => !currentIds.has(orig.cpf));
+                    combinedList = [...combinedList, ...missingOriginals];
                 }
+
+                setAvailableFuncionarios(combinedList);
+            } catch (err) {
+                console.error("Erro ao buscar equipe disponível", err);
             }
         };
 
-        // Debounce simples ou verificação se os campos estão completos
-        if (watchedDia && watchedHorario && watchedDia.length === 10 && watchedHorario.length === 5) {
-            fetchAvailableTeam();
-        }
-    }, [watchedDia, watchedHorario]);
+        fetchAvailableTeam();
+    }, [watchedDia, watchedHorario, originalFuncionarios]);
 
     // 3. Submit (Create ou Update)
     const submitEvent = async (data: IEventoInput) => {
-        // Extrai apenas os IDs (CPFs) do array de strings "id|nome"
+        // Extrai apenas os IDs (CPFs)
         const funcionariosIds = selectedFuncionarios.map(f => f.split('|')[0]);
 
         const payload = {
             ...data,
-            funcionarios: funcionariosIds // Envia array de IDs para o backend
+            funcionarios: funcionariosIds
         };
 
         try {
@@ -116,7 +135,8 @@ const EventForm = () => {
                 await api.createEvento(payload);
             } else {
                 // await api.updateEvento(id, payload);
-                console.log("Update simulado:", id, payload);
+                console.log("Update payload:", payload);
+                // Exemplo: await api.put(`/eventos/${id}`, payload);
             }
             router.push('/events');
         } catch (err) {
@@ -150,7 +170,6 @@ const EventForm = () => {
                 {!isLoading && (
                     <form onSubmit={handleSubmit(submitEvent)}>
                         <FormWrapper>
-                            {/* Linha 1: Lugar */}
                             <FormGroup>
                                 <label htmlFor="lugar">Lugar</label>
                                 <input
@@ -161,7 +180,6 @@ const EventForm = () => {
                                 />
                             </FormGroup>
 
-                            {/* Linha 2: Dia, Horário, Valor */}
                             <FormColumn $columns="1fr 1fr 1fr">
                                 <FormGroup>
                                     <label htmlFor="dia">Dia</label>
@@ -194,7 +212,6 @@ const EventForm = () => {
                                 </FormGroup>
                             </FormColumn>
 
-                            {/* Linha 3: Input customizado de Funcionários */}
                             <FormGroup>
                                 <FuncionarioInput
                                     funcionarios={availableFuncionarios}
