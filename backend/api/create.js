@@ -33,26 +33,107 @@ const createTitular = (db) => {
 };
 
 //-------------------------------------------------------------------------//
+//                                FALECIDO                                  //
+//-_______________________________________________________________________-//
+const createFalecido = (db) => {
+  return async (req, res) => {
+    const { cpf, nome, data_falecimento, data_nascimento, motivo, id_tumulo } = req.body;
+
+    try {
+      if (!cpf || !nome || !id_tumulo) {
+        return res.status(400).json({ error: "CPF, nome e id_tumulo são obrigatórios" });
+      }
+
+      const query = `
+        INSERT INTO falecido (cpf, nome, data_falecimento, data_nascimento, motivo, id_tumulo)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
+      `;
+
+      const values = [cpf, nome, data_falecimento, data_nascimento, motivo, id_tumulo];
+
+      const result = await db.query(query, values);
+
+      return res.status(201).json({
+        message: "Falecido criado com sucesso",
+        titular: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar falecido:\n ${error.message} ` });
+    }
+  };
+};
+
+//-------------------------------------------------------------------------//
+//                                CONTRATO                                 //
+//-_______________________________________________________________________-//
+const createContrato = (db) => {
+  return async (req, res) => {
+    const {cpf,id_tumulo,data_inicio,prazo_vigencia,valor,status} = req.body;
+
+    try {
+      if (!cpf || !id_tumulo) {
+        return res.status(400).json({ error: "CPF e id_tumulo são obrigatórios" });
+      }
+
+      const query = `
+        INSERT INTO contrato (cpf, id_tumulo, data_inicio, prazo_vigencia, valor, status)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *;
+      `;
+
+      const values = [cpf,id_tumulo,data_inicio,prazo_vigencia,valor,status];
+
+      const result = await db.query(query, values);
+
+      return res.status(201).json({
+        message: "Contrato criado com sucesso",
+        titular: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar contrato:\n ${error.message} ` });
+    }
+  };
+};
+
+//-------------------------------------------------------------------------//
 //                               FORNECEDOR                                //
 //-_______________________________________________________________________-//
 const createFornecedor = (db) => {
   return async (req, res) => {
-    const { cnpj, nome, endereco } = req.body;
+    const { cnpj, nome, endereco, telefone} = req.body;
 
     try {
-      if (!cnpj) {
-        return res.status(400).json({ error: "CNPJ é obrigatório" });
+      if (!cnpj || !telefone) {
+        return res.status(400).json({ error: "CNPJ e Telefone é obrigatório" });
       }
+
+      // Início da transação
+      await db.query("BEGIN");
 
       const query = `
         INSERT INTO fornecedor (cnpj, nome, endereco)
         VALUES ($1, $2, $3)
         RETURNING *;
       `;
+      
+      const result = await db.query(query, [
+        cnpj, nome, endereco
+      ]);
+      
+      const queryTelefone = `
+      INSERT INTO telefone_fornecedor (cnpj, telefone)
+      VALUES ($1, $2)
+      RETURNING *;
+      `;
+      
+      await db.query(queryTelefone, [cnpj, telefone]);
 
-      const values = [cnpj, nome, endereco];
-
-      const result = await db.query(query, values);
+      await db.query("COMMIT");
 
       return res.status(201).json({
         message: "Fornecedor criado com sucesso",
@@ -60,6 +141,7 @@ const createFornecedor = (db) => {
       });
 
     } catch (error) {
+      await db.query("ROLLBACK");
       console.error(error);
       return res.status(500).json({ error: `Erro ao criar fornecedor:\n ${error.message} ` });
     }
@@ -71,22 +153,38 @@ const createFornecedor = (db) => {
 //-_______________________________________________________________________-//
 const createTumulo = (db) => {
   return async (req, res) => {
-    const { status, tipo, capacidade } = req.body;
+    const { status, tipo, capacidade, quadra, setor, numero } = req.body;
 
     try {
-      const query = `
+      // Início da transação
+      await db.query("BEGIN");
+
+      const insertTumuloQuery = `
         INSERT INTO tumulo (status, tipo, capacidade)
         VALUES ($1, $2, $3)
         RETURNING *;
       `;
 
-      const values = [status, tipo, capacidade];
+      const tumuloResult = await db.query(insertTumuloQuery, [
+        status, tipo, capacidade
+      ]);
 
-      const result = await db.query(query, values);
+      const id_tumulo = tumuloResult.rows[0].id_tumulo;
+
+      // Segundo: insere na tabela localizacao_tumulo
+      const insertLocalizacaoQuery = `
+        INSERT INTO localizacao_tumulo (id_tumulo, quadra, setor, numero)
+        VALUES ($1, $2, $3, $4)
+      `;
+
+      await db.query(insertLocalizacaoQuery, [id_tumulo, quadra, setor, numero]);
+
+      // Commit final
+      await db.query("COMMIT");
 
       return res.status(201).json({
-        message: "Tumulo criado com sucesso",
-        tumulo: result.rows[0]
+        message: "Túmulo criado com sucesso",
+        id_tumulo
       });
 
     } catch (error) {
@@ -130,9 +228,227 @@ const createFuncionario = (db) => {
   };
 };
 
+//-------------------------------------------------------------------------//
+//                             EVENTO COMPRA                               //
+//-_______________________________________________________________________-//
+const createCompra = (db) => {
+  return async (req, res) => {
+    const { cnpj, id_evento, valor, item, quantidade, data_compra, horario} = req.body;
+
+    try {
+      if (!cnpj || !id_evento || !valor) {
+        return res.status(400).json({ error: "CNPJ, id_evento e valor são obrigatórios" });
+      }
+
+      // Primeiro: insere na tabela evento
+      const insertEventoQuery = `
+        INSERT INTO compra (cnpj, id_evento, valor, item, quantidade, data_compra, horario)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *;
+      `;
+
+      const result = await db.query(insertEventoQuery, [
+        cnpj, id_evento, valor, item, quantidade, data_compra, horario
+      ]);
+
+
+      return res.status(201).json({
+        message: "Compra inserida com sucesso",
+        id_evento
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar compra:\n ${error.message}` });
+    }
+  };
+};
+
+//-------------------------------------------------------------------------//
+//                             EVENTO CREMAÇÃO                             //
+//-_______________________________________________________________________-//
+const createCremacao = (db) => {
+  return async (req, res) => {
+    const { forno, cpf, nome, lugar, dia, horario, valor, cpf_funcionario } = req.body;
+
+    try {
+      if (!cpf || !nome || !cpf_funcionario) {
+        return res.status(400).json({ error: "CPF e nome são obrigatórios" });
+      }
+
+      // Início da transação
+      await db.query("BEGIN");
+
+      // Primeiro: insere na tabela evento
+      const insertEventoQuery = `
+        INSERT INTO evento (cpf, nome, lugar, dia, horario, valor)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id_evento;
+      `;
+
+      const eventoResult = await db.query(insertEventoQuery, [
+        cpf, nome, lugar, dia, horario, valor
+      ]);
+
+      const id_evento = eventoResult.rows[0].id_evento;
+
+      // Segundo: insere na tabela evento_cremacao
+      const insertCremacaoQuery = `
+        INSERT INTO evento_cremacao (id_evento, forno)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertCremacaoQuery, [id_evento, forno]);
+
+      const insertFuncEvenQuery = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertFuncEvenQuery, [cpf_funcionario, id_evento]);
+
+      // Commit final
+      await db.query("COMMIT");
+
+      return res.status(201).json({
+        message: "Evento de cremação criado com sucesso",
+        id_evento,
+        forno
+      });
+
+    } catch (error) {
+      await db.query("ROLLBACK");
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar cremação:\n ${error.message}` });
+    }
+  };
+};
+
+//-------------------------------------------------------------------------//
+//                             EVENTO VELÓRIO                              //
+//-_______________________________________________________________________-//
+const createVelorio = (db) => {
+  return async (req, res) => {
+    const { sala, cpf, nome, lugar, dia, horario, valor, cpf_funcionario } = req.body;
+
+    try {
+      if (!cpf || !nome || !cpf_funcionario) {
+        return res.status(400).json({ error: "CPF e nome são obrigatórios" });
+      }
+
+      // Início da transação
+      await db.query("BEGIN");
+
+      // Primeiro: insere na tabela evento
+      const insertEventoQuery = `
+        INSERT INTO evento (cpf, nome, lugar, dia, horario, valor)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id_evento;
+      `;
+
+      const eventoResult = await db.query(insertEventoQuery, [
+        cpf, nome, lugar, dia, horario, valor
+      ]);
+
+      const id_evento = eventoResult.rows[0].id_evento;
+
+      // Segundo: insere na tabela evento_velorio
+      const insertCremacaoQuery = `
+        INSERT INTO evento_velorio (id_evento, sala)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertCremacaoQuery, [id_evento, sala]);
+
+      const insertFuncEvenQuery = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertFuncEvenQuery, [cpf_funcionario, id_evento]);
+
+
+      // Commit final
+      await db.query("COMMIT");
+
+      return res.status(201).json({
+        message: "Evento de velório criado com sucesso",
+        id_evento,
+        sala
+      });
+
+    } catch (error) {
+      await db.query("ROLLBACK");
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar cremação:\n ${error.message}` });
+    }
+  };
+};
+
+//-------------------------------------------------------------------------//
+//                           EVENTO SEPULTAMENTO                           //
+//-_______________________________________________________________________-//
+const createSepultamento = (db) => {
+  return async (req, res) => {
+    const { local_destino, cpf, nome, lugar, dia, horario, valor, cpf_funcionario } = req.body;
+
+    try {
+      if (!cpf || !nome || !cpf_funcionario) {
+        return res.status(400).json({ error: "CPF, nome e cpf_funcionario são obrigatórios" });
+      }
+
+      // Início da transação
+      await db.query("BEGIN");
+
+      // Primeiro: insere na tabela evento
+      const insertEventoQuery = `
+        INSERT INTO evento (cpf, nome, lugar, dia, horario, valor)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id_evento;
+      `;
+
+      const eventoResult = await db.query(insertEventoQuery, [
+        cpf, nome, lugar, dia, horario, valor
+      ]);
+
+      const id_evento = eventoResult.rows[0].id_evento;
+
+      // Segundo: insere na tabela evento_sepultamento
+      const insertSepultamentoQuery = `
+        INSERT INTO evento_sepultamento (id_evento, local_destino)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertSepultamentoQuery, [id_evento, local_destino]);
+
+      const insertFuncEvenQuery = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+      `;
+      await db.query(insertFuncEvenQuery, [cpf_funcionario, id_evento]);
+
+      // Commit final
+      await db.query("COMMIT");
+
+      return res.status(201).json({
+        message: "Evento de sepultamento criado com sucesso",
+        id_evento,
+        local_destino
+      });
+
+    } catch (error) {
+      await db.query("ROLLBACK");
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao criar Sepultamento:\n ${error.message}` });
+    }
+  };
+};
+
+
 export default {
+  createContrato,
+  createCompra,
+  createCremacao,
+  createFalecido,
   createFornecedor,
   createFuncionario,
+  createSepultamento,
   createTitular,
-  createTumulo
+  createTumulo,
+  createVelorio
 };
