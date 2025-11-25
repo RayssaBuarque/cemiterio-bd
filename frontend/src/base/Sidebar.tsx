@@ -7,6 +7,8 @@ import { motion, AnimatePresence, Variants } from 'framer-motion'; // Import Fra
 // components
 import SecondaryButton from '../components/SecondaryButton';
 import Accordion from '../components/Accordion';
+import Logo from '../../public/images/logo.png'
+import Image from 'next/image';
 
 interface SideBarProps {
     name: string;
@@ -77,7 +79,11 @@ const SideBar = (props: SideBarProps) => {
             >
                 <SidepanelWrapper>
                     <motion.div className="logo" variants={itemVariants}>
-                        <h5>Cemitério</h5>
+                        <Image
+                            src = {Logo}
+                            alt = "logo"
+                            width={200}
+                        />
                     </motion.div>
 
                     <NavigationList>
