@@ -18,8 +18,9 @@ const CompraRow = ({ cnpj, id_evento, data_compra, horario, quantidade, valor, i
     // Helpers de formatação
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
-        const [year, month, day] = dateString.split('-');
-        return `${day}/${month}/${year}`;
+        
+         const day = dateString.split('T')[0];
+        return day.split('-').reverse().join('/');
     }
 
     const formatCurrency = (val: number) => {
