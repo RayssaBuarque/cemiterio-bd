@@ -1,11 +1,13 @@
 import express from "express";
 import { Pool } from "pg";
-
+import cors from 'cors'
 import readRoutes from './api/read.js';
 import createRoutes from './api/create.js';
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
 
 // Conexão com PostgreSQL
 const db = new Pool({
