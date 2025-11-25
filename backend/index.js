@@ -36,6 +36,8 @@ app.get("/evento", readRoutes.getEventos(db));
 app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
 app.get("/evento/:id", readRoutes.getEventoPorId(db));
 
+app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
+
 
 
 

@@ -458,6 +458,17 @@ const getTumuloFiltro = (db) => {
   };
 };
 
+const getContratosAVencer = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query("SELECT c.CPF, t.nome, c.ID_tumulo, c.data_inicio, (c.data_inicio + c.prazo_vigencia) AS data_fim FROM contrato c JOIN titular t ON c.CPF = t.CPF WHERE (c.data_inicio + c.prazo_vigencia) BETWEEN CURRENT_DATE AND CURRENT_DATE + 30;");
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao achar contratos vencendo" });
+    }
+  };
+}
 
 export default {
   // Contratos
@@ -485,5 +496,8 @@ export default {
   // Túmulos
   getTumulos,
   getTumuloPorId,
-  getTumuloFiltro
+  getTumuloFiltro,
+
+  //Avancados
+  getContratosAVencer
 };
