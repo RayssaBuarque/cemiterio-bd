@@ -7,6 +7,8 @@ import { motion, AnimatePresence, Variants } from 'framer-motion'; // Import Fra
 // components
 import SecondaryButton from '../components/SecondaryButton';
 import Accordion from '../components/Accordion';
+import Logo from '../../public/images/logo.png'
+import Image from 'next/image';
 
 interface SideBarProps {
     name: string;
@@ -74,10 +76,14 @@ const SideBar = (props: SideBarProps) => {
                 initial={false}
                 animate={isOpen ? "open" : "closed"}
                 variants={sidebarVariants}
-            >
+            >   
                 <SidepanelWrapper>
                     <motion.div className="logo" variants={itemVariants}>
-                        <h5>Cemitério</h5>
+                        <Image
+                            src = {Logo}
+                            alt = "logo"
+                            width={180}
+                        />
                     </motion.div>
 
                     <NavigationList>
@@ -85,6 +91,7 @@ const SideBar = (props: SideBarProps) => {
                         <motion.li variants={itemVariants} className={router.pathname == '/' ? 'active' : ''}>
                             <Link legacyBehavior href="/"><a>Dashboard</a></Link>
                         </motion.li>
+
 
                         <motion.li variants={itemVariants} className={router.pathname == '/titulares' ? 'active' : ''}>
                             <Link legacyBehavior href="/titulares"><a>Titulares</a></Link>
@@ -94,20 +101,33 @@ const SideBar = (props: SideBarProps) => {
                             <Link legacyBehavior href="/falecidos"><a>Falecidos</a></Link>
                         </motion.li>
 
+                        <motion.li variants={itemVariants} className={router.pathname == '/tumulos' ? 'active' : ''}>
+                            <Link legacyBehavior href="/tumulos"><a>Túmulos</a></Link>
+                        </motion.li>
+
                         <motion.div variants={itemVariants} style={{ width: '100%' }}>
-                            <Accordion title={"Funcionários"}>
-                                <li className={router.pathname == '/funcionarios' ? 'active' : ''}>
-                                    <Link legacyBehavior href="/funcionarios"><a>Escala de trabalho</a></Link>
-                                </li>
-                            </Accordion>
+                            <li className={router.pathname == '/funcionarios' ? 'active' : ''}>
+                                <Link legacyBehavior href="/funcionarios"><a>Funcionários</a></Link>
+                            </li>  
                         </motion.div>
 
                         <motion.li variants={itemVariants} className={router.pathname == '/eventos' ? 'active' : ''}>
                             <Link legacyBehavior href="/eventos"><a>Eventos</a></Link>
                         </motion.li>
 
-                        <motion.li variants={itemVariants} className={router.pathname == '/fornecedores' ? 'active' : ''}>
-                            <Link legacyBehavior href="/fornecedores"><a>Fornecedores</a></Link>
+
+                        <Accordion title = "Fornecedores">
+                            <motion.li variants={itemVariants} className={router.pathname == '/fornecedores' ? 'active' : ''}>
+                                <Link legacyBehavior href="/fornecedores"><a>Info. Fornecedores</a></Link>
+                            </motion.li>
+
+                            <motion.li variants={itemVariants} className={router.pathname == '/compras' ? 'active' : ''}>
+                                <Link legacyBehavior href="/compras"><a>Compras</a></Link>
+                            </motion.li>
+                        </Accordion>
+
+                        <motion.li variants={itemVariants} className={router.pathname == '/contratos' ? 'active' : ''}>
+                            <Link legacyBehavior href="/contratos"><a>Contratos</a></Link>
                         </motion.li>
                     </NavigationList>
                 </SidepanelWrapper>

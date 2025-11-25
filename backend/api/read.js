@@ -118,9 +118,8 @@ const getEventos = (db) => {
 //-------------------------------------------------------------------------//
 const getEventoPorId = (db) => {
   return async (req, res) => {
-    const { id_evento } = req.params;
     try {
-      const { id } = req.params;
+      const { id_evento } = req.params;
       const result = await db.query(
         `SELECT * FROM evento WHERE id_evento = ${id_evento}`
       );
@@ -337,6 +336,26 @@ const getFuncionariosFiltro = (db) => {
   };
 };
 
+const getFuncionarioPorIdEvento = (db) => {
+  return async (req, res) => {
+    try {
+      const { id_evento } = req.params;
+      const result = await db.query(
+        `SELECT funcionario_evento.CPF, funcionario_evento.ID_evento, funcionario.nome FROM funcionario_evento, funcionario WHERE funcionario_evento.CPF = funcionario.CPF AND id_evento = ${id_evento}`
+      );
+
+      if (!result.rows[0]) {
+        return res.status(404).json({ error: "Funcionario por id_evento não encontrado" });
+      }
+
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar evento por id_evento" });
+    }
+  };
+}
+
 //-------------------------------------------------------------------------//
 //                               TITULARES                                 //
 //-_______________________________________________________________________-//
@@ -437,7 +456,9 @@ const getTumuloFiltro = (db) => {
       id_tumulo: req.query.id_tumulo,
       status: req.query.status,
       tipo: req.query.tipo,
-      capacidade: req.query.capacidade
+      capacidade: req.query.capacidade,
+      atual: req.query.atual
+      
     };
 
     const { where, values } = construtorDeWhere(filtros);
@@ -541,6 +562,24 @@ const getTumulosMaisOcupados = (db) => {
   };
 };
 
+const getTaxaOcupacao = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+      SELECT 
+        COUNT(*) AS total_tumulos,
+        SUM(CASE WHEN status IN ('Reservado', 'Cheio') THEN 1 ELSE 0 END) AS tumulos_ocupados,
+        (SUM(CASE WHEN status IN ('Reservado', 'Cheio') THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS taxa_ocupacao_percentual
+        FROM tumulo
+      `);
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar túmulos" });
+    }
+  };
+};
+
 // 4. Localização com mais contratos ativos
 const getLocalizacaoContratosAtivos = (db) => {
   return async (req, res) => {
@@ -599,7 +638,6 @@ const getEstatisticasCompras = (db) => {
           AVG(valor) AS valor_medio,
           MAX(valor) AS maior_compra
         FROM compra
-        GROUP BY item
         ORDER BY soma_valor DESC
       `);
       return res.json(result.rows);
@@ -670,6 +708,256 @@ const getFornecedorMaisUsado = (db) => {
   };
 };
 
+const getFuncionariosLivres = (db) => {
+  return async (req, res) => {
+    try {
+      const { data, horario } = req.query;
+      
+      if (!data || !horario) {
+        return res.status(400).json({ 
+          error: "Parâmetros 'data' e 'horario' são obrigatórios. Formato: data=YYYY-MM-DD&horario=HH:MM:SS" 
+        });
+      }
+
+      const result = await db.query(`
+        SELECT 
+          f.CPF,
+          f.nome,
+          f.funcao,
+          f.horas_semanais
+        FROM funcionario f
+        WHERE f.CPF NOT IN (
+          SELECT fe.CPF
+          FROM funcionario_evento fe
+          JOIN evento e ON fe.ID_evento = e.ID_evento
+          WHERE e.dia = $1 
+            AND e.horario = $2
+        )
+        ORDER BY f.nome
+      `, [data, horario]);
+
+      return res.json({
+        data_consulta: data,
+        horario_consulta: horario,
+        funcionarios_livres: result.rows,
+        total_livres: result.rows.length
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar funcionários livres" });
+    }
+  };
+};
+
+const getCompras = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query("SELECT * FROM compra");
+      return res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao consultar todas as compras" });
+    }
+  };
+}
+
+const getFornecedorMelhorPreco = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        WITH media_precos AS (
+          SELECT 
+            c.item,
+            f.CNPJ,
+            f.nome AS nome_fornecedor,
+            AVG(c.valor) AS media_preco,
+            COUNT(*) AS total_compras,
+            ROW_NUMBER() OVER (PARTITION BY c.item ORDER BY AVG(c.valor) ASC) AS ranking
+          FROM compra c
+          JOIN fornecedor f ON c.CNPJ = f.CNPJ
+          WHERE c.item IS NOT NULL
+          GROUP BY c.item, f.CNPJ, f.nome
+        )
+        SELECT 
+          item,
+          CNPJ,
+          nome_fornecedor,
+          ROUND(media_preco::numeric, 2) AS media_preco,
+          total_compras
+        FROM media_precos
+        WHERE ranking = 1
+        ORDER BY item;
+      `);
+
+      return res.json({
+        message: "Fornecedores com melhores preços por item",
+        dados: result.rows
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar fornecedores com melhores preços" });
+    }
+  };
+};
+
+const getContratosAtivos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT COUNT(*) AS active_contracts
+        FROM contrato 
+        WHERE status = 'Ativo'
+      `);
+      
+      return res.json({
+        active_contracts: parseInt(result.rows[0].active_contracts)
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar contratos ativos" });
+    }
+  };
+};
+
+const getFaturamentoDoMes = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT 
+          COALESCE(SUM(c.valor), 0) AS monthly_revenue
+        FROM contrato c
+        WHERE EXTRACT(YEAR FROM c.data_inicio) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND EXTRACT(MONTH FROM c.data_inicio) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND c.status = 'Ativo'
+      `);
+      
+      return res.json({
+        monthly_revenue: parseFloat(result.rows[0].monthly_revenue)
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular receita mensal" });
+    }
+  };
+};
+
+const getEventosProximos = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        SELECT COUNT(*) AS upcoming_events
+        FROM evento 
+        WHERE dia BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
+      `);
+      
+      return res.json({
+        upcoming_events: parseInt(result.rows[0].upcoming_events)
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao buscar eventos futuros" });
+    }
+  };
+};
+
+const getFaturamentoComparativo = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        WITH monthly_revenue AS (
+          SELECT 
+            EXTRACT(YEAR FROM data_inicio) AS year,
+            EXTRACT(MONTH FROM data_inicio) AS month,
+            SUM(valor) AS revenue
+          FROM contrato
+          WHERE EXTRACT(YEAR FROM data_inicio) = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND status = 'Ativo'
+          GROUP BY EXTRACT(YEAR FROM data_inicio), EXTRACT(MONTH FROM data_inicio)
+          ORDER BY year, month
+        )
+        SELECT 
+          (SELECT revenue FROM monthly_revenue 
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE)) AS current_month,
+          (SELECT revenue FROM monthly_revenue 
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE) - 1) AS previous_month,
+          (SELECT revenue FROM monthly_revenue 
+           WHERE month = EXTRACT(MONTH FROM CURRENT_DATE) - 2) AS two_months_ago
+      `);
+      
+      const row = result.rows[0];
+      const current = parseFloat(row.current_month) || 0;
+      const previous = parseFloat(row.previous_month) || 0;
+      const twoMonthsAgo = parseFloat(row.two_months_ago) || 0;
+      
+      const growthVsPrevious = previous !== 0 ? ((current - previous) / previous) * 100 : 0;
+      const growthVsTwoMonths = twoMonthsAgo !== 0 ? ((current - twoMonthsAgo) / twoMonthsAgo) * 100 : 0;
+
+      return res.json({
+        current_month_revenue: current,
+        previous_month_revenue: previous,
+        two_months_ago_revenue: twoMonthsAgo,
+        growth_vs_previous: parseFloat(growthVsPrevious.toFixed(2)),
+        growth_vs_two_months: parseFloat(growthVsTwoMonths.toFixed(2))
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular tendência de receita" });
+    }
+  };
+};
+
+const getFaturamentoMensalDoAno = (db) => {
+  return async (req, res) => {
+    try {
+      const result = await db.query(`
+        WITH meses AS (
+          SELECT generate_series(
+            '2025-01-01'::date,
+            CURRENT_DATE,
+            '1 month'::interval
+          ) AS mes
+        )
+        SELECT 
+          TO_CHAR(m.mes, 'YYYY-MM') AS mes_ano,
+          TO_CHAR(m.mes, 'Month') AS mes_nome,
+          EXTRACT(MONTH FROM m.mes) AS mes_numero,
+          COALESCE(c.total_contratos, 0) AS total_contratos,
+          COALESCE(c.faturamento_total, 0) AS faturamento_total
+        FROM meses m
+        LEFT JOIN (
+          SELECT 
+            TO_CHAR(data_inicio, 'YYYY-MM') AS mes_ano,
+            COUNT(*) AS total_contratos,
+            SUM(valor) AS faturamento_total
+          FROM contrato
+          WHERE EXTRACT(YEAR FROM data_inicio) = 2025
+            AND status = 'Ativo'
+          GROUP BY TO_CHAR(data_inicio, 'YYYY-MM')
+        ) c ON TO_CHAR(m.mes, 'YYYY-MM') = c.mes_ano
+        ORDER BY m.mes
+      `);
+
+      return res.json({
+        message: "Faturamento mensal de 2025",
+        dados: mesesCompletos.rows,
+        total_geral: {
+          contratos: mesesCompletos.rows.reduce((sum, item) => sum + parseInt(item.total_contratos), 0),
+          faturamento: mesesCompletos.rows.reduce((sum, item) => sum + parseFloat(item.faturamento_total), 0)
+        }
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao calcular faturamento mensal" });
+    }
+  };
+};
+
 export default {
   // Contratos
   getContratos,
@@ -693,6 +981,8 @@ export default {
   // Funcionarios
   getFuncionarios,
   getFuncionariosFiltro,
+  getFuncionariosLivres,
+  getFuncionarioPorIdEvento,
 
   // Titulares
   getTitulares,
@@ -703,8 +993,20 @@ export default {
   getTumuloPorId,
   getTumuloFiltro,
 
-  //Avancados
+  //compras
+  getCompras,
+  getFornecedorMelhorPreco,
+
+  //dasboard
   getContratosAVencer,
+  getContratosAtivos,
+  getFaturamentoDoMes,
+  getEventosProximos,
+  getFaturamentoComparativo,
+  getFaturamentoMensalDoAno,
+
+
+  //Avancados
   getCustoTotalEventos,
   getFuncionariosMaisTrabalhadores,
   getTumulosMaisOcupados,
@@ -712,6 +1014,7 @@ export default {
   getFornecedoresMaiorGastos,
   getEstatisticasCompras,
   getEstatisticasFalecidos,
-  getFornecedorMaisUsado
+  getFornecedorMaisUsado,
+  getTaxaOcupacao
 
 };

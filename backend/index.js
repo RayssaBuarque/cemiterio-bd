@@ -3,6 +3,8 @@ import { Pool } from "pg";
 import cors from 'cors'
 import readRoutes from './api/read.js';
 import createRoutes from './api/create.js';
+import updateHandlers from './api/update.js';
+
 
 const app = express();
 app.use(express.json());
@@ -38,12 +40,17 @@ app.get("/fornecedor/filtro", readRoutes.getFornecedoresFiltro(db))
 
 app.get("/funcionario", readRoutes.getFuncionarios(db))
 app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
+app.get("/funcionarioLivre", readRoutes.getFuncionariosLivres(db))
+app.get("/funcionario/:id_evento", readRoutes.getFuncionarioPorIdEvento(db));
 
 app.get("/evento", readRoutes.getEventos(db));
 app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
-app.get("/evento/:id", readRoutes.getEventoPorId(db));
+app.get("/evento/:id_evento", readRoutes.getEventoPorId(db));
 
-app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
+app.get("/compra", readRoutes.getCompras(db));
+app.get("/fornecedorMelhorPreco", readRoutes.getFornecedorMelhorPreco(db))
+
+
 app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));
 app.get("/maisTrabalhadores", readRoutes.getFuncionariosMaisTrabalhadores(db));
 app.get("/tumulosMaisOcupados", readRoutes.getTumulosMaisOcupados(db));
@@ -53,8 +60,14 @@ app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
 app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
 app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
 
-
-
+//dashboard
+app.get("/taxaOcupacao", readRoutes.getTaxaOcupacao(db));
+app.get("/contratosAtivos", readRoutes.getContratosAtivos(db));
+app.get("/faturamentoDoMes", readRoutes.getFaturamentoDoMes(db));
+app.get("/eventosProximos", readRoutes.getEventosProximos(db));
+app.get("/faturamentoComparativo", readRoutes.getFaturamentoComparativo(db));
+app.get("/faturamentoNoAno", readRoutes.getFaturamentoComparativo(db));
+app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
 
 
 
@@ -74,6 +87,15 @@ app.post("/tumulo", createRoutes.createTumulo(db));
 // // Rotas de DELEÇÃO
 // app.delete("/titular/:cpf", deleteRoutes.deleteTitularByCpf);
 // (...)
+
+// Rotas de ATUALIZAÇÃO
+app.put('/titular/:cpf', updateHandlers.updateTitular(db));
+app.put('/tumulo/:id_tumulo', updateHandlers.updateTumulo(db));
+app.put('/falecido/:cpf', updateHandlers.updateFalecido(db));
+app.put('/contrato/:id_contrato', updateHandlers.updateContrato(db));
+app.put('/fornecedor/:cnpj', updateHandlers.updateFornecedor(db));
+app.put('/funcionario/:cpf', updateHandlers.updateFuncionario(db));
+
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando: http://localhost:${PORT}`);

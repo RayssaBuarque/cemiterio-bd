@@ -1,23 +1,23 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { ITitularInput } from '../types'; // Certifique-se que o caminho está correto
+import { ITumuloInput } from '../types'; // Certifique-se de exportar ITumuloInput no types
 
 // components
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import TitularRow from '@/components/TitularRow';
+import TumuloRow from '../components/TumuloRow'; // Componente que renderiza a linha individual
 
 import Image from 'next/image';
 
-const Titulares = () => {
+const Tumulos = () => {
 
-    // Tipando o estado com a interface fornecida
-    const [titulares, setTitulares] = useState<ITitularInput[]>([])
-    const [filteredTitulares, setFilteredTitulares] = useState<ITitularInput[]>([])
+    // Estado tipado com a interface de Túmulos
+    const [tumulos, setTumulos] = useState<ITumuloInput[]>([])
+    const [filteredTumulos, setFilteredTumulos] = useState<ITumuloInput[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Para abrir modal de criação
+    const [isOpen, setisOpen] = useState(false)
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -25,18 +25,17 @@ const Titulares = () => {
     const [query, setQuery] = useState('')
     const maxRows = 11;
 
-    const getTitulares = async () => {
+    const getTumulos = async () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            // A chamada deve corresponder à sua API (api.getTitulares)
-            const { data } = await api.getTitulares()
+            const { data } = await api.getTumulos()
             if (data) {
-                setTitulares(data);
-                setFilteredTitulares(data);
+                setTumulos(data);
+                setFilteredTumulos(data);
             }
         } catch (error) {
-            console.error("Erro ao buscar titulares:", error)
+            console.error("Erro ao buscar túmulos:", error)
         } finally {
             setisLoading(false)
         }
@@ -44,104 +43,100 @@ const Titulares = () => {
 
     // Busca inicial
     useEffect(() => {
-        getTitulares()
+        getTumulos()
     }, [])
 
-    // Lógica de Filtro (Busca por Nome ou CPF)
+    // Lógica de Filtro (Busca por ID, Tipo ou Status)
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
-        const filtered = titulares.filter((titular) => 
-            titular.nome.toLowerCase().includes(lowerQuery) || 
-            titular.cpf.includes(lowerQuery)
+        const filtered = tumulos.filter((tumulo) => 
+            tumulo.id_tumulo.toString().includes(lowerQuery) || 
+            tumulo.tipo.toLowerCase().includes(lowerQuery) ||
+            tumulo.status.toLowerCase().includes(lowerQuery)
         );
-        setFilteredTitulares(filtered);
+        setFilteredTumulos(filtered);
         setCurrentPage(1); // Reseta para página 1 ao filtrar
-    }, [query, titulares])
+    }, [query, tumulos])
 
     // Lógica de Paginação
-    const totalPages = Math.ceil(filteredTitulares.length / maxRows)
-    const currentTitulares = filteredTitulares.slice(
+    const totalPages = Math.ceil(filteredTumulos.length / maxRows)
+    const currentTumulos = filteredTumulos.slice(
         (currentPage - 1) * maxRows,
         currentPage * maxRows
     )
 
     return (
         <>
-            <SideBar name={"Titulares"} />
-            <TitularesContainer>
-                <TitularesTitle>
-                    <h5>Titulares</h5>
+            <SideBar name={"Túmulos"} />
+            <TumulosContainer>
+                <TumulosTitle>
+                    <h5>Túmulos</h5>
 
-                    <TitularesInteractions>
-                        <TitularesFilter>
+                    <TumulosInteractions>
+                        <TumulosFilter>
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar por nome ou CPF..."
+                                placeholder="Buscar por ID, tipo ou status..."
                             />
-                            <Button onClick={() => getTitulares()}>Atualizar</Button>
-                        </TitularesFilter>
+                            <Button onClick={() => getTumulos()}>Atualizar</Button>
+                        </TumulosFilter>
                         <span />
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
 
-                    </TitularesInteractions>
+                    </TumulosInteractions>
 
-                </TitularesTitle>
+                </TumulosTitle>
 
                 {/* Cabeçalho da Tabela */}
-                <TitularesGrid>
-                    <label>CPF</label>
-                    <label>Nome</label>
-                    <label>Endereço</label>
-                    <label>Telefone</label>
-                </TitularesGrid>
+                <TumulosGrid>
+                    <label>ID</label>
+                    <label>Tipo</label>
+                    <label>Status</label>
+                    <label>Capacidade</label>
+                </TumulosGrid>
 
-                <TitularesWrapper>
+                <TumulosWrapper>
                     {!isLoading &&
-                        currentTitulares.map((titular, index) => {
-                            // Renderiza a linha. 
-                            // Nota: Você deve criar/adaptar o componente TitularRow para aceitar estas props
-                            // e usar o mesmo Grid CSS definido abaixo.
+                        currentTumulos.map((tumulo, index) => {
                             return (
-                                <TitularRow
-                                    key={titular.cpf} // CPF é chave única
+                                <TumuloRow
+                                    key={tumulo.id_tumulo}
                                     isEven={index % 2 === 0}
-                                    cpf={titular.cpf}
-                                    nome={titular.nome}
-                                    endereco={titular.endereco || '-'}
-                                    telefone={titular.telefone || '-'}
-                                    // Funções de update/delete podem ser passadas aqui
-                                    updateList={getTitulares} 
+                                    id={tumulo.id_tumulo}
+                                    tipo={tumulo.tipo}
+                                    status={tumulo.status}
+                                    capacidade={tumulo.capacidade}
+                                    updateList={getTumulos} 
                                 />
                             )
                         })
                     }
 
-                    {!isLoading && filteredTitulares.length === 0 &&
-                        <p className='allRow noTitulares'>Nenhum titular encontrado :(</p>
+                    {!isLoading && filteredTumulos.length === 0 &&
+                        <p className='allRow noTumulos'>Nenhum túmulo encontrado :(</p>
                     }
 
                     {isLoading &&
                         <div className="allRow">
-         
-                        </div>
+                        
+                         </div>
                     }
 
-                </TitularesWrapper>
+                </TumulosWrapper>
 
-                <TitularesFooter>
-                    <p>{filteredTitulares.length} titulares encontrados</p>
-                    {!isLoading && filteredTitulares.length > 0 &&
+                <TumulosFooter>
+                    <p>{filteredTumulos.length} túmulos encontrados</p>
+                    {!isLoading && filteredTumulos.length > 0 &&
                         <Pagination>
                             <Button
                                 className={currentPage === 1 ? 'noInteraction' : ''}
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             >{"<"}</Button>
                             
-                            {/* Lógica simples de paginação (pode ser otimizada para muitos números) */}
                             {Array.from({ length: totalPages }, (_, i) =>
                                 <Button
                                     className={currentPage === i + 1 ? '' : 'disabled'}
@@ -156,19 +151,19 @@ const Titulares = () => {
                             >{">"}</Button>
                         </Pagination>
                     }
-                </TitularesFooter>
-            </TitularesContainer>
+                </TumulosFooter>
+            </TumulosContainer>
         </>
     )
 }
 
-export default Titulares;
+export default Tumulos;
 
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
 
-const TitularesContainer = styled.div`
+const TumulosContainer = styled.div`
     padding: 1.5rem;
     width: 100%;
     height: 100%;
@@ -183,7 +178,7 @@ const TitularesContainer = styled.div`
     }
 `
 
-const TitularesTitle = styled.div`
+const TumulosTitle = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -191,7 +186,7 @@ const TitularesTitle = styled.div`
     margin-bottom: 1.5rem;
 `
 
-const TitularesFilter = styled.div`
+const TumulosFilter = styled.div`
     display: flex;
     gap: 0.5rem;
     width: 100%;
@@ -224,7 +219,7 @@ const TitularesFilter = styled.div`
     }
 `
 
-const TitularesInteractions = styled.div`
+const TumulosInteractions = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
@@ -237,19 +232,19 @@ const TitularesInteractions = styled.div`
     }
 
     button {
-        max-width: 10rem; /* Aumentei um pouco para caber "+ Adicionar" */
+        max-width: 10rem;
     }
 `
 
-// GRID DEFINITION: Alterado para comportar as 5 colunas do Titular
-// Layout sugerido: CPF (fixo), Nome (flex), RG (fixo), Endereço (flex maior), Telefone (fixo)
-const TitularesGrid = styled.div`
+// GRID DEFINITION: Adaptado para 4 colunas (ID, Tipo, Status, Capacidade)
+// Layout: ID (pequeno), Tipo (flex), Status (médio), Capacidade (pequeno)
+const TumulosGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* CPF | Nome | Endereço | Telefone */
-    grid-template-columns: 1fr 2fr 2.5fr 1fr; 
+    /* ID | Tipo | Status | Capacidade */
+    grid-template-columns: 0.5fr 2fr 1fr 1fr; 
     grid-column-gap: 1.5rem;
     align-items: center;
     margin-bottom: 0.75rem;
@@ -262,16 +257,16 @@ const TitularesGrid = styled.div`
     }
 `
 
-const TitularesWrapper = styled.div`
+const TumulosWrapper = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
     padding-bottom: 0.75rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--outline-neutrals-secondary);
-    min-height: 200px; /* Evita pulo de layout no loading */
+    min-height: 200px;
 
-    .noTitulares{
+    .noTumulos{
         text-align: center;
         font: 700 1.125rem/1.5rem 'At Aero Bold';
         margin-top: 2rem;
@@ -286,7 +281,7 @@ const TitularesWrapper = styled.div`
     }
 `
 
-const TitularesFooter = styled.footer`
+const TumulosFooter = styled.footer`
     width: 100%;
     display: flex;
     justify-content: space-between;

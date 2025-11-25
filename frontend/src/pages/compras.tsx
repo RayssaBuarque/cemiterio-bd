@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { ITitularInput } from '../types'; // Certifique-se que o caminho está correto
+import { ICompras } from '../types'; // Ajuste o caminho se necessário
 
 // components
-import Button from '../components/Button';
-import SecondaryButton from '../components/SecondaryButton';
-import SideBar from '../base/Sidebar';
-import TitularRow from '@/components/TitularRow';
+import Button from '@/components/Button';
+import SecondaryButton from '@/components/SecondaryButton';
+import SideBar from '@/base/Sidebar';
+import CompraRow from '@/components/CompraRow';
 
 import Image from 'next/image';
 
-const Titulares = () => {
+const Compras = () => {
 
-    // Tipando o estado com a interface fornecida
-    const [titulares, setTitulares] = useState<ITitularInput[]>([])
-    const [filteredTitulares, setFilteredTitulares] = useState<ITitularInput[]>([])
+    const [compras, setCompras] = useState<ICompras[]>([])
+    const [filteredCompras, setFilteredCompras] = useState<ICompras[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Para abrir modal de criação
+    const [isOpen, setisOpen] = useState(false) // Controle do modal de criação, se for implementar
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -25,18 +24,18 @@ const Titulares = () => {
     const [query, setQuery] = useState('')
     const maxRows = 11;
 
-    const getTitulares = async () => {
+    const getCompras = async () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            // A chamada deve corresponder à sua API (api.getTitulares)
-            const { data } = await api.getTitulares()
+            // Supondo endpoint getCompras na sua API
+            const { data } = await api.getCompras()
             if (data) {
-                setTitulares(data);
-                setFilteredTitulares(data);
+                setCompras(data);
+                setFilteredCompras(data);
             }
         } catch (error) {
-            console.error("Erro ao buscar titulares:", error)
+            console.error("Erro ao buscar compras:", error)
         } finally {
             setisLoading(false)
         }
@@ -44,104 +43,100 @@ const Titulares = () => {
 
     // Busca inicial
     useEffect(() => {
-        getTitulares()
+        getCompras()
     }, [])
 
-    // Lógica de Filtro (Busca por Nome ou CPF)
+    // Lógica de Filtro (Busca por CNPJ ou ID do Evento)
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
-        const filtered = titulares.filter((titular) => 
-            titular.nome.toLowerCase().includes(lowerQuery) || 
-            titular.cpf.includes(lowerQuery)
+        const filtered = compras.filter((compra) => 
+            compra.cnpj.toLowerCase().includes(lowerQuery) || 
+            compra.id_evento.toString().includes(lowerQuery)
         );
-        setFilteredTitulares(filtered);
-        setCurrentPage(1); // Reseta para página 1 ao filtrar
-    }, [query, titulares])
+        setFilteredCompras(filtered);
+        setCurrentPage(1); 
+    }, [query, compras])
 
     // Lógica de Paginação
-    const totalPages = Math.ceil(filteredTitulares.length / maxRows)
-    const currentTitulares = filteredTitulares.slice(
+    const totalPages = Math.ceil(filteredCompras.length / maxRows)
+    const currentCompras = filteredCompras.slice(
         (currentPage - 1) * maxRows,
         currentPage * maxRows
     )
 
     return (
         <>
-            <SideBar name={"Titulares"} />
-            <TitularesContainer>
-                <TitularesTitle>
-                    <h5>Titulares</h5>
+            <SideBar name={"Compras"} />
+            <ComprasContainer>
+                <ComprasTitle>
+                    <h5>Compras</h5>
 
-                    <TitularesInteractions>
-                        <TitularesFilter>
+                    <ComprasInteractions>
+                        <ComprasFilter>
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar por nome ou CPF..."
+                                placeholder="Buscar por CNPJ ou ID do Evento..."
                             />
-                            <Button onClick={() => getTitulares()}>Atualizar</Button>
-                        </TitularesFilter>
+                            <Button onClick={() => getCompras()}>Atualizar</Button>
+                        </ComprasFilter>
                         <span />
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
 
-                    </TitularesInteractions>
+                    </ComprasInteractions>
 
-                </TitularesTitle>
+                </ComprasTitle>
 
-                {/* Cabeçalho da Tabela */}
-                <TitularesGrid>
-                    <label>CPF</label>
-                    <label>Nome</label>
-                    <label>Endereço</label>
-                    <label>Telefone</label>
-                </TitularesGrid>
+                {/* Cabeçalho da Tabela - Grid alinhado com CompraRow */}
+                <ComprasGrid>
+                    <label>CNPJ</label>
+                    <label>Evento</label>
+                    <label>Data</label>
+                    <label>Hora</label>
+                    <label>Qtd</label>
+                    <label>Valor</label>
+                </ComprasGrid>
 
-                <TitularesWrapper>
+                <ComprasWrapper>
                     {!isLoading &&
-                        currentTitulares.map((titular, index) => {
-                            // Renderiza a linha. 
-                            // Nota: Você deve criar/adaptar o componente TitularRow para aceitar estas props
-                            // e usar o mesmo Grid CSS definido abaixo.
+                        currentCompras.map((compra, index) => {
+                            // Criando uma chave única composta, já que não temos um ID único simples
+                            const uniqueKey = `${compra.cnpj}-${compra.id_evento}-${compra.data_compra}-${compra.horario}`;
                             return (
-                                <TitularRow
-                                    key={titular.cpf} // CPF é chave única
+                                <CompraRow
+                                    key={uniqueKey}
                                     isEven={index % 2 === 0}
-                                    cpf={titular.cpf}
-                                    nome={titular.nome}
-                                    endereco={titular.endereco || '-'}
-                                    telefone={titular.telefone || '-'}
-                                    // Funções de update/delete podem ser passadas aqui
-                                    updateList={getTitulares} 
+                                    {...compra} // Passa todas as props (cnpj, id_evento, etc)
+                                    updateList={getCompras} 
                                 />
                             )
                         })
                     }
 
-                    {!isLoading && filteredTitulares.length === 0 &&
-                        <p className='allRow noTitulares'>Nenhum titular encontrado :(</p>
+                    {!isLoading && filteredCompras.length === 0 &&
+                        <p className='allRow noCompras'>Nenhuma compra encontrada :(</p>
                     }
 
                     {isLoading &&
                         <div className="allRow">
-         
+           
                         </div>
                     }
 
-                </TitularesWrapper>
+                </ComprasWrapper>
 
-                <TitularesFooter>
-                    <p>{filteredTitulares.length} titulares encontrados</p>
-                    {!isLoading && filteredTitulares.length > 0 &&
+                <ComprasFooter>
+                    <p>{filteredCompras.length} compras encontradas</p>
+                    {!isLoading && filteredCompras.length > 0 &&
                         <Pagination>
                             <Button
                                 className={currentPage === 1 ? 'noInteraction' : ''}
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             >{"<"}</Button>
                             
-                            {/* Lógica simples de paginação (pode ser otimizada para muitos números) */}
                             {Array.from({ length: totalPages }, (_, i) =>
                                 <Button
                                     className={currentPage === i + 1 ? '' : 'disabled'}
@@ -156,19 +151,19 @@ const Titulares = () => {
                             >{">"}</Button>
                         </Pagination>
                     }
-                </TitularesFooter>
-            </TitularesContainer>
+                </ComprasFooter>
+            </ComprasContainer>
         </>
     )
 }
 
-export default Titulares;
+export default Compras;
 
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
 
-const TitularesContainer = styled.div`
+const ComprasContainer = styled.div`
     padding: 1.5rem;
     width: 100%;
     height: 100%;
@@ -183,7 +178,7 @@ const TitularesContainer = styled.div`
     }
 `
 
-const TitularesTitle = styled.div`
+const ComprasTitle = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -191,7 +186,7 @@ const TitularesTitle = styled.div`
     margin-bottom: 1.5rem;
 `
 
-const TitularesFilter = styled.div`
+const ComprasFilter = styled.div`
     display: flex;
     gap: 0.5rem;
     width: 100%;
@@ -224,7 +219,7 @@ const TitularesFilter = styled.div`
     }
 `
 
-const TitularesInteractions = styled.div`
+const ComprasInteractions = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
@@ -237,20 +232,20 @@ const TitularesInteractions = styled.div`
     }
 
     button {
-        max-width: 10rem; /* Aumentei um pouco para caber "+ Adicionar" */
+        max-width: 10rem;
     }
 `
 
-// GRID DEFINITION: Alterado para comportar as 5 colunas do Titular
-// Layout sugerido: CPF (fixo), Nome (flex), RG (fixo), Endereço (flex maior), Telefone (fixo)
-const TitularesGrid = styled.div`
+// GRID DEFINITION: Deve ser idêntico ao definido em CompraRow.tsx
+// 1.5fr 0.8fr 1fr 0.8fr 0.6fr 1fr
+const ComprasGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* CPF | Nome | Endereço | Telefone */
-    grid-template-columns: 1fr 2fr 2.5fr 1fr; 
-    grid-column-gap: 1.5rem;
+    /* CNPJ | Evento | Data | Hora | Qtd | Valor */
+    grid-template-columns: 1.5fr 0.8fr 1fr 0.8fr 0.6fr 1fr; 
+    grid-column-gap: 1rem;
     align-items: center;
     margin-bottom: 0.75rem;
 
@@ -262,16 +257,16 @@ const TitularesGrid = styled.div`
     }
 `
 
-const TitularesWrapper = styled.div`
+const ComprasWrapper = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
     padding-bottom: 0.75rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--outline-neutrals-secondary);
-    min-height: 200px; /* Evita pulo de layout no loading */
+    min-height: 200px;
 
-    .noTitulares{
+    .noCompras{
         text-align: center;
         font: 700 1.125rem/1.5rem 'At Aero Bold';
         margin-top: 2rem;
@@ -286,7 +281,7 @@ const TitularesWrapper = styled.div`
     }
 `
 
-const TitularesFooter = styled.footer`
+const ComprasFooter = styled.footer`
     width: 100%;
     display: flex;
     justify-content: space-between;

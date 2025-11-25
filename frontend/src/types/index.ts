@@ -3,12 +3,17 @@ export interface IFiltros extends Record<string, any> {
     data_fim?: string;
     limit?: number;
     page?: number;
+    id_evento?: number;
 }
 
 // === CONTRATOS ===
 export interface IContrato {
-    id: number;
-    data_assinatura: string;
+    cpf: string;
+    id_tumulo: number;
+    data_inicio: number;
+    valor: number;
+    prazo_vigencia: number;
+    status: 'Ativo' | 'Reservado';
 }
 
 // === TITULARES ===
@@ -19,33 +24,56 @@ export interface ITitularInput {
     telefone?: string;
 }
 
+// === FALECIDOS ===
+export interface IFalecidoInput {
+    cpf: string;
+    nome: string;
+    data_nascimento: string;
+    data_falecimento: string;
+    motivo?: string;
+    id_tumulo: number;
+}
+
 // === TÚMULOS ===
 export interface ITumuloInput {
-    localizacao: string;
-    tipo: 'comum' | 'jazigo' | 'gaveta';
-    capacidade?: number;
+    id_tumulo: number,
+    status: 'Cheio' | 'Reservado' | 'Vazio';
+    tipo: 'Túmulo Familiar' | 'Gaveta' | 'Mausoléu' | 'Túmulo Duplo';
+    capacidade: number;
 }
 
 // === FORNECEDORES ===
 export interface IFornecedorInput {
     cnpj: string;
-    razao_social: string;
-    nome_fantasia?: string;
-    contato?: string;
+    nome: string;
+    endereco: string;
+}
+
+// === COMPRAS ===
+export interface ICompras{
+    cnpj: string;
+    id_evento: number;
+    data_compra: string;
+    horario: string;
+    quantidade: number;
+    valor: number;
 }
 
 // === FUNCIONÁRIOS ===
 export interface IFuncionarioInput {
     cpf: string;
     nome: string;
-    cargo: string;
+    funcao: string;
+    modelo_contrato: string;
+    horas_semanais: number;
     salario?: number;
 }
 
 // === EVENTOS ===
 export interface IEventoInput {
-    titulo: string;
-    data: string;
-    descricao?: string;
-    id_tumulo?: number;
+    id_evento: number;
+    lugar: string;
+    dia: string;
+    horario: string;
+    valor?: number;
 }

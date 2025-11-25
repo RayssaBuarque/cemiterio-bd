@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { ITitularInput } from '../types'; // Certifique-se que o caminho está correto
+import { IContrato } from '@/types'; // Ajuste o caminho se necessário
 
 // components
-import Button from '../components/Button';
-import SecondaryButton from '../components/SecondaryButton';
-import SideBar from '../base/Sidebar';
-import TitularRow from '@/components/TitularRow';
+import Button from '@/components/Button';
+import SecondaryButton from '@/components/SecondaryButton';
+import SideBar from '@/base/Sidebar';
+import ContratoRow from '@/components/ContratoRow';
 
 import Image from 'next/image';
 
-const Titulares = () => {
+const Contratos = () => {
 
-    // Tipando o estado com a interface fornecida
-    const [titulares, setTitulares] = useState<ITitularInput[]>([])
-    const [filteredTitulares, setFilteredTitulares] = useState<ITitularInput[]>([])
+    const [contratos, setContratos] = useState<IContrato[]>([])
+    const [filteredContratos, setFilteredContratos] = useState<IContrato[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Para abrir modal de criação
+    const [isOpen, setisOpen] = useState(false)
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -25,18 +24,17 @@ const Titulares = () => {
     const [query, setQuery] = useState('')
     const maxRows = 11;
 
-    const getTitulares = async () => {
+    const getContratos = async () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            // A chamada deve corresponder à sua API (api.getTitulares)
-            const { data } = await api.getTitulares()
+            const { data } = await api.getContratos()
             if (data) {
-                setTitulares(data);
-                setFilteredTitulares(data);
+                setContratos(data);
+                setFilteredContratos(data);
             }
         } catch (error) {
-            console.error("Erro ao buscar titulares:", error)
+            console.error("Erro ao buscar contratos:", error)
         } finally {
             setisLoading(false)
         }
@@ -44,104 +42,101 @@ const Titulares = () => {
 
     // Busca inicial
     useEffect(() => {
-        getTitulares()
+        getContratos()
     }, [])
 
-    // Lógica de Filtro (Busca por Nome ou CPF)
+    // Lógica de Filtro (Busca por CPF ou ID Túmulo)
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
-        const filtered = titulares.filter((titular) => 
-            titular.nome.toLowerCase().includes(lowerQuery) || 
-            titular.cpf.includes(lowerQuery)
+        const filtered = contratos.filter((contrato) => 
+            contrato.cpf.includes(lowerQuery) || 
+            contrato.id_tumulo.toString().includes(lowerQuery) ||
+            contrato.status.toLowerCase().includes(lowerQuery)
         );
-        setFilteredTitulares(filtered);
-        setCurrentPage(1); // Reseta para página 1 ao filtrar
-    }, [query, titulares])
+        setFilteredContratos(filtered);
+        setCurrentPage(1); 
+    }, [query, contratos])
 
     // Lógica de Paginação
-    const totalPages = Math.ceil(filteredTitulares.length / maxRows)
-    const currentTitulares = filteredTitulares.slice(
+    const totalPages = Math.ceil(filteredContratos.length / maxRows)
+    const currentContratos = filteredContratos.slice(
         (currentPage - 1) * maxRows,
         currentPage * maxRows
     )
 
     return (
         <>
-            <SideBar name={"Titulares"} />
-            <TitularesContainer>
-                <TitularesTitle>
-                    <h5>Titulares</h5>
+            <SideBar name={"Contratos"} />
+            <ContratosContainer>
+                <ContratosTitle>
+                    <h5>Contratos</h5>
 
-                    <TitularesInteractions>
-                        <TitularesFilter>
+                    <ContratosInteractions>
+                        <ContratosFilter>
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar por nome ou CPF..."
+                                placeholder="Buscar por CPF, ID Túmulo ou Status..."
                             />
-                            <Button onClick={() => getTitulares()}>Atualizar</Button>
-                        </TitularesFilter>
+                            <Button onClick={() => getContratos()}>Atualizar</Button>
+                        </ContratosFilter>
                         <span />
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
 
-                    </TitularesInteractions>
+                    </ContratosInteractions>
 
-                </TitularesTitle>
+                </ContratosTitle>
 
                 {/* Cabeçalho da Tabela */}
-                <TitularesGrid>
-                    <label>CPF</label>
-                    <label>Nome</label>
-                    <label>Endereço</label>
-                    <label>Telefone</label>
-                </TitularesGrid>
+                <ContratosGrid>
+                    <label>CPF Titular</label>
+                    <label>Túmulo</label>
+                    <label>Data Início</label>
+                    <label>Prazo (Meses)</label>
+                    <label>Valor</label>
+                    <label style={{textAlign: 'center'}}>Status</label>
+                </ContratosGrid>
 
-                <TitularesWrapper>
+                <ContratosWrapper>
                     {!isLoading &&
-                        currentTitulares.map((titular, index) => {
-                            // Renderiza a linha. 
-                            // Nota: Você deve criar/adaptar o componente TitularRow para aceitar estas props
-                            // e usar o mesmo Grid CSS definido abaixo.
+                        currentContratos.map((contrato, index) => {
+                            // Chave única composta
+                            const uniqueKey = `${contrato.cpf}-${contrato.id_tumulo}`;
                             return (
-                                <TitularRow
-                                    key={titular.cpf} // CPF é chave única
+                                <ContratoRow
+                                    key={uniqueKey}
                                     isEven={index % 2 === 0}
-                                    cpf={titular.cpf}
-                                    nome={titular.nome}
-                                    endereco={titular.endereco || '-'}
-                                    telefone={titular.telefone || '-'}
-                                    // Funções de update/delete podem ser passadas aqui
-                                    updateList={getTitulares} 
+                                    {...contrato} 
+                                    updateList={getContratos} 
                                 />
                             )
                         })
                     }
 
-                    {!isLoading && filteredTitulares.length === 0 &&
-                        <p className='allRow noTitulares'>Nenhum titular encontrado :(</p>
+                    {!isLoading && filteredContratos.length === 0 &&
+                        <p className='allRow noContratos'>Nenhum contrato encontrado :(</p>
                     }
 
                     {isLoading &&
                         <div className="allRow">
-         
+          
                         </div>
                     }
 
-                </TitularesWrapper>
+                </ContratosWrapper>
 
-                <TitularesFooter>
-                    <p>{filteredTitulares.length} titulares encontrados</p>
-                    {!isLoading && filteredTitulares.length > 0 &&
+                <ContratosFooter>
+                    <p>{filteredContratos.length} contratos encontrados</p>
+                    {!isLoading && filteredContratos.length > 0 &&
                         <Pagination>
                             <Button
                                 className={currentPage === 1 ? 'noInteraction' : ''}
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             >{"<"}</Button>
                             
-                            {/* Lógica simples de paginação (pode ser otimizada para muitos números) */}
                             {Array.from({ length: totalPages }, (_, i) =>
                                 <Button
                                     className={currentPage === i + 1 ? '' : 'disabled'}
@@ -156,19 +151,19 @@ const Titulares = () => {
                             >{">"}</Button>
                         </Pagination>
                     }
-                </TitularesFooter>
-            </TitularesContainer>
+                </ContratosFooter>
+            </ContratosContainer>
         </>
     )
 }
 
-export default Titulares;
+export default Contratos;
 
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
 
-const TitularesContainer = styled.div`
+const ContratosContainer = styled.div`
     padding: 1.5rem;
     width: 100%;
     height: 100%;
@@ -183,7 +178,7 @@ const TitularesContainer = styled.div`
     }
 `
 
-const TitularesTitle = styled.div`
+const ContratosTitle = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -191,7 +186,7 @@ const TitularesTitle = styled.div`
     margin-bottom: 1.5rem;
 `
 
-const TitularesFilter = styled.div`
+const ContratosFilter = styled.div`
     display: flex;
     gap: 0.5rem;
     width: 100%;
@@ -224,7 +219,7 @@ const TitularesFilter = styled.div`
     }
 `
 
-const TitularesInteractions = styled.div`
+const ContratosInteractions = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
@@ -237,20 +232,20 @@ const TitularesInteractions = styled.div`
     }
 
     button {
-        max-width: 10rem; /* Aumentei um pouco para caber "+ Adicionar" */
+        max-width: 10rem;
     }
 `
 
-// GRID DEFINITION: Alterado para comportar as 5 colunas do Titular
-// Layout sugerido: CPF (fixo), Nome (flex), RG (fixo), Endereço (flex maior), Telefone (fixo)
-const TitularesGrid = styled.div`
+// GRID DEFINITION: 6 Colunas
+// CPF (Grande) | ID (Médio) | Data (Médio) | Prazo (Pequeno) | Valor (Médio) | Status (Pequeno)
+const ContratosGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* CPF | Nome | Endereço | Telefone */
-    grid-template-columns: 1fr 2fr 2.5fr 1fr; 
-    grid-column-gap: 1.5rem;
+    /* CPF | Túmulo | Data | Prazo | Valor | Status */
+    grid-template-columns: 2fr 1fr 1.5fr 1fr 1.5fr 1fr; 
+    grid-column-gap: 1rem;
     align-items: center;
     margin-bottom: 0.75rem;
 
@@ -262,16 +257,16 @@ const TitularesGrid = styled.div`
     }
 `
 
-const TitularesWrapper = styled.div`
+const ContratosWrapper = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
     padding-bottom: 0.75rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid var(--outline-neutrals-secondary);
-    min-height: 200px; /* Evita pulo de layout no loading */
+    min-height: 200px;
 
-    .noTitulares{
+    .noContratos{
         text-align: center;
         font: 700 1.125rem/1.5rem 'At Aero Bold';
         margin-top: 2rem;
@@ -286,7 +281,7 @@ const TitularesWrapper = styled.div`
     }
 `
 
-const TitularesFooter = styled.footer`
+const ContratosFooter = styled.footer`
     width: 100%;
     display: flex;
     justify-content: space-between;
