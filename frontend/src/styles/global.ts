@@ -3,6 +3,8 @@ import { createGlobalStyle } from 'styled-components';
 export default createGlobalStyle`
 
     :root {
+        color-scheme: dark light;   //Ajustada
+
         //  CONTENT NEUTRALS
             --content-neutrals-primary:  #FFFFFF;
             --content-neutrals-secondary:  #E6E6E6;
@@ -31,9 +33,9 @@ export default createGlobalStyle`
             --brand-primary-dark:  #3E0672;
 
         //  BACKGROUND  NEUTRALS
-            --background-neutrals-primary: #141414 ;
-            --background-neutrals-secondary:  #1B1B1B;
-            --background-neutrals-tertiary:  #1B1B1B;
+            --background-neutrals-primary:  #1A1A1A;
+            --background-neutrals-secondary:  #333333;
+            --background-neutrals-tertiary:  #666666;
             --background-neutrals-inverse:  #FFFFFF;
 
         // BACKGROUND   GREEN
