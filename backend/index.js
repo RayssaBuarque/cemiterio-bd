@@ -21,10 +21,24 @@ app.get("/contrato/filtro", readRoutes.getContratoFiltro(db));
 app.get("/contrato/:cpf", readRoutes.getContratoPorCpf(db));
 
 app.get("/titular", readRoutes.getTitulares(db));
+app.get("/titular/filtro", readRoutes.getTitularesFiltro(db));
 
 app.get("/tumulo", readRoutes.getTumulos(db));
 app.get("/tumulo/filtro", readRoutes.getTumuloFiltro(db));
 app.get("/tumulo/:id_tumulo", readRoutes.getTumuloPorId(db));
+
+app.get("/fornecedor", readRoutes.getFornecedores)
+app.get("/fornecedor/filtro", readRoutes.getContratoFiltro)
+
+app.get("/funcionario", readRoutes.getFuncionarios)
+app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro)
+
+app.get("/evento", readRoutes.getEventos(db));
+app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
+app.get("/evento/:id", readRoutes.getEventoPorId(db));
+
+
+
 
 
 // Rotas de INSERÇÃO
