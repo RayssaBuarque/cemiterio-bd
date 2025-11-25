@@ -29,8 +29,12 @@ app.get("/tumulo", readRoutes.getTumulos(db));
 app.get("/tumulo/filtro", readRoutes.getTumuloFiltro(db));
 app.get("/tumulo/:id_tumulo", readRoutes.getTumuloPorId(db));
 
+app.get("/falecido", readRoutes.getFalecidos(db));
+app.get("/falecido/filtro", readRoutes.getFalecidosFiltro(db));
+app.get("/falecido/:cpf", readRoutes.getFalecidoPorCpf(db));
+
 app.get("/fornecedor", readRoutes.getFornecedores(db))
-app.get("/fornecedor/filtro", readRoutes.getContratoFiltro(db))
+app.get("/fornecedor/filtro", readRoutes.getFornecedoresFiltro(db))
 
 app.get("/funcionario", readRoutes.getFuncionarios(db))
 app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
