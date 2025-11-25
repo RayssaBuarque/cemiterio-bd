@@ -341,7 +341,7 @@ const getFuncionarioPorIdEvento = (db) => {
     try {
       const { id_evento } = req.params;
       const result = await db.query(
-        `SELECT * FROM funcionario_evento WHERE id_evento = ${id_evento}`
+        `SELECT funcionario_evento.CPF, funcionario_evento.ID_evento, funcionario.nome FROM funcionario_evento, funcionario WHERE funcionario_evento.CPF = funcionario.CPF AND id_evento = ${id_evento}`
       );
 
       if (!result.rows[0]) {
