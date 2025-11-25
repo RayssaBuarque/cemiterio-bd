@@ -2,6 +2,7 @@ import express from "express";
 import { Pool } from "pg";
 
 import readRoutes from './api/read.js';
+import createRoutes from './api/create.js';
 
 const app = express();
 app.use(express.json());
@@ -27,8 +28,11 @@ app.get("/tumulo/:id_tumulo", readRoutes.getTumuloPorId(db));
 
 
 // Rotas de INSERÇÃO
-// app.post("/titular", insertRoutes.createTitular);
-// // (...)
+app.post("/fornecedor", createRoutes.createFornecedor(db));
+app.post("/funcionario", createRoutes.createFuncionario(db));
+app.post("/titular", createRoutes.createTitular(db));
+app.post("/tumulo", createRoutes.createTumulo(db));
+// (...)
 
 // // Rotas de DELEÇÃO
 // app.delete("/titular/:cpf", deleteRoutes.deleteTitularByCpf);
