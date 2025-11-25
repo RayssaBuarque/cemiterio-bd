@@ -676,6 +676,11 @@ export default {
   getContratoPorCpf,
   getContratoFiltro,
 
+  // Falecidos
+  getFalecidos,
+  getFalecidoPorCpf,
+  getFalecidosFiltro,
+
   // Eventos
   getEventos,
   getEventoPorId,
@@ -683,7 +688,7 @@ export default {
 
   // Fornecedores
   getFornecedores,
-  getContratoFiltro,
+  getFornecedoresFiltro,
 
   // Funcionarios
   getFuncionarios,
