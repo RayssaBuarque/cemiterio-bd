@@ -44,14 +44,6 @@ CREATE TABLE contrato ( -----------------
     FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
 );
 
-CREATE TABLE evento (
-    ID_evento SERIAL PRIMARY KEY,
-    lugar VARCHAR(100),
-    dia DATE,
-    horario TIME,
-    valor NUMERIC(10,2)
-);
-
 CREATE TABLE falecido ( ------------
     CPF CHAR(11),
     nome VARCHAR(100) NOT NULL,
@@ -62,6 +54,18 @@ CREATE TABLE falecido ( ------------
 	PRIMARY KEY (CPF, nome),
 	FOREIGN KEY (CPF) REFERENCES titular(CPF),
 	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
+);
+
+CREATE TABLE evento (
+    ID_evento SERIAL PRIMARY KEY,
+	CPF CHAR(11),
+	nome VARCHAR(100) NOT NULL,
+    lugar VARCHAR(100),
+    dia DATE,
+    horario TIME,
+    valor NUMERIC(10,2)
+	FOREIGN KEY (CPF) REFERENCES titular(CPF),
+	FOREIGN KEY (nome) REFERENCES falecido(nome)
 );
 
 CREATE TABLE fornecedor (
