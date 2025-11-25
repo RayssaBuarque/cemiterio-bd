@@ -15,7 +15,6 @@ export interface IContrato {
 export interface ITitularInput {
     cpf: string;
     nome: string;
-    rg?: string;
     endereco?: string;
     telefone?: string;
 }
