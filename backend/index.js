@@ -38,6 +38,16 @@ app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
 app.get("/evento/:id", readRoutes.getEventoPorId(db));
 
 app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
+app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));
+app.get("/maisTrabalhadores", readRoutes.getFuncionariosMaisTrabalhadores(db));
+app.get("/tumulosMaisOcupados", readRoutes.getTumulosMaisOcupados(db));
+app.get("/localizacaoContratosAtivos", readRoutes.getLocalizacaoContratosAtivos(db));
+app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorVolume(db));
+app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
+app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
+app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
+
+
 
 
 
