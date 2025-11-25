@@ -146,6 +146,14 @@ const api = {
         return await axios.get("/funcionario/filtro", { params: filtros });
     },
 
+    getFuncionarioByEvento: async (id_evento: number | string): Promise<AxiosResponse<any>> => {
+        return await axios.get(`/funcionario/${id_evento}`);
+    },
+
+    getFuncionariosLivres: async (dia: string, horario: string): Promise<AxiosResponse<any>> => {
+        return await axios.get("/funcionarioLivre", { params: { dia, horario } });
+    },
+
     createFuncionario: async (dadosFuncionario: IFuncionarioInput): Promise<AxiosResponse<any>> => {
         return await axios.post("/funcionario", dadosFuncionario, {
             headers: { "Content-Type": "application/json" }

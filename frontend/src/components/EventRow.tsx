@@ -14,8 +14,8 @@ const EventRow = ({ id_evento, lugar, dia, horario, valor, isEven }: EventRowPro
         if (!dateString) return '-';
         // Garante que a data seja interpretada corretamente independente do timezone do navegador
         // Divide "2025-05-20" em partes para criar a data localmente ou apenas formatar a string
-        const [year, month, day] = dateString.split('-');
-        return `${day}/${month}/${year}`;
+        const day = dateString.split('T')[0];
+        return day.split('-').reverse().join('/');
     }
 
     const formatCurrency = (val?: number) => {

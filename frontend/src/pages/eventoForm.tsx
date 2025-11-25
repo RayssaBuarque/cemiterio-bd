@@ -53,12 +53,18 @@ const EventForm = () => {
                         horario: data.horario,
                         valor: data.valor,
                     });
-
-                    // Se o evento já tiver funcionários alocados, popula o estado
-                    // Assumindo que data.funcionarios seja um array de objetos { cpf, nome, ... }
-                    if (data.funcionarios && Array.isArray(data.funcionarios)) {
-                        const formattedSelected = data.funcionarios.map((f: any) => `${f.cpf}|${f.nome}`);
-                        setSelectedFuncionarios(formattedSelected);
+                    
+                    try{
+                        const res = await api.getFuncionarioByEvento(id as string);
+                        // Se o evento já tiver funcionários alocados, popula o estado
+                        // Assumindo que data.funcionarios seja um array de objetos { cpf, nome, ... }
+                        if (res.data && Array.isArray(res.data)) {
+                            const formattedSelected = res.data.map((f: any) => `${f.cpf}|${f.nome}`);
+                            setSelectedFuncionarios(formattedSelected);
+                        }
+                    }
+                    catch(err){
+                        console.error("Nenhum funcionário alocado para este evento ou erro na busca", err);
                     }
                 }
             } catch (err) {
@@ -79,7 +85,7 @@ const EventForm = () => {
                 try {
                     // Chama a API passando dia e horário para filtrar quem está livre
                     // Nota: Se for edição, a API idealmente deve retornar também os que já estão neste evento
-                    const { data } = await api.getFuncionarios();
+                    const { data } = await api.getFuncionariosLivres(watchedDia, watchedHorario);
                     setAvailableFuncionarios(data || []);
                 } catch (err) {
                     console.error("Erro ao buscar equipe disponível", err);

@@ -20,6 +20,16 @@ export interface ITitularInput {
     telefone?: string;
 }
 
+// === FALECIDOS ===
+export interface IFalecidoInput {
+    cpf: string;
+    nome: string;
+    data_nascimento: string;
+    data_falecimento: string;
+    motivo?: string;
+    id_tumulo: number;
+}
+
 // === TÚMULOS ===
 export interface ITumuloInput {
     id_tumulo: number,
