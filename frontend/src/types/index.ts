@@ -21,9 +21,10 @@ export interface ITitularInput {
 
 // === TÚMULOS ===
 export interface ITumuloInput {
-    localizacao: string;
-    tipo: 'comum' | 'jazigo' | 'gaveta';
-    capacidade?: number;
+    id_tumulo: number,
+    status: 'Ocupado' | 'Reservado' | 'Livre';
+    tipo: 'Túmulo Familiar' | 'Gaveta' | 'Mausoléu' | 'Túmulo Duplo';
+    capacidade: number;
 }
 
 // === FORNECEDORES ===
