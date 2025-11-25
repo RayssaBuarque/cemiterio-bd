@@ -43,10 +43,12 @@ app.get("/funcionario/filtro", readRoutes.getFuncionariosFiltro(db))
 app.get("/funcionarioLivre", readRoutes.getFuncionariosLivres(db))
 app.get("/funcionario/:id_evento", readRoutes.getFuncionarioPorIdEvento(db));
 
-
 app.get("/evento", readRoutes.getEventos(db));
 app.get("/evento/filtro", readRoutes.getEventosFiltro(db));
 app.get("/evento/:id_evento", readRoutes.getEventoPorId(db));
+
+app.get("/compra", readRoutes.getCompras(db));
+
 
 app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
 app.get("/custoTotalEventos", readRoutes.getCustoTotalEventos(db));
@@ -57,7 +59,6 @@ app.get("/fornecedoresMaiorGastos", readRoutes.getFornecedoresMaiorGastos(db));
 app.get("/estatisticasCompras", readRoutes.getEstatisticasCompras(db));
 app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
 app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
-
 
 
 // Rotas de INSERÇÃO
