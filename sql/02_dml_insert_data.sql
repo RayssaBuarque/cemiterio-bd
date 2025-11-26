@@ -133,8 +133,8 @@ INSERT INTO localizacao_tumulo (ID_tumulo, quadra, setor, numero) VALUES
 (46,'B','2',212),(47,'C','3',312),(48,'D','4',412),(49,'A','1',113),(50,'B','2',213);
 
 -- ============================================
--- 4) CONTRATOS (50 registros) - TODOS COM ANO 2025 NAS DATAS (data_inicio em 2025)
--- Observação: data_inicio todas em 2025 conforme solicitado
+-- 4) CONTRATOS (50 registros)
+-- Observação: data_inicio todas em 2025
 -- ============================================
 INSERT INTO contrato (CPF, ID_tumulo, data_inicio, prazo_vigencia, valor, status) VALUES
 ('10000000001',1,'2025-01-05',365,15000.00,'Ativo'),
@@ -189,8 +189,7 @@ INSERT INTO contrato (CPF, ID_tumulo, data_inicio, prazo_vigencia, valor, status
 ('10000000050',50,'2025-08-21',365,6800.00,'Ativo');
 
 -- ============================================
--- 5) FALECIDOS (50 registros) - uso dos mesmos CPFs dos titulares para manter relações
--- causas repetidas + referências de terror + causas normais
+-- 5) FALECIDOS (50 registros)
 -- ============================================
 INSERT INTO falecido (CPF, nome, data_falecimento, data_nascimento, motivo, ID_tumulo) VALUES
 ('10000000001','Antonio Silva','2024-01-10','1945-03-15','Causas naturais',1),
@@ -245,7 +244,7 @@ INSERT INTO falecido (CPF, nome, data_falecimento, data_nascimento, motivo, ID_t
 ('10000000050','Felipe Martins','2024-12-20','1953-12-20','Doença',50);
 
 -- ============================================
--- 6) FORNECEDORES (50 registros) - CNPJs únicos, endereços BR
+-- 6) FORNECEDORES (50 registros)
 -- ============================================
 INSERT INTO fornecedor (CNPJ, nome, endereco) VALUES
 ('20000000000101','Flores Para Sempre Ltda','Rua das Flores, 100 - Centro - São Paulo/SP'),
@@ -389,7 +388,6 @@ INSERT INTO funcionario (CPF, nome, funcao, modelo_contrato, horas_semanais, sal
 
 -- ============================================
 -- 9) EVENTOS (50 registros) - usa CPF dos titulares, nomes dos falecidos; locais variados BR
--- datas variadas (2024/2025) — mantive coerência temporal (não exigiu 2025 aqui)
 -- ============================================
 INSERT INTO evento (CPF, nome, lugar, dia, horario, valor) VALUES
 ('10000000001','Antonio Silva','Capela São João','2024-01-15','14:00:00',2500.00),
@@ -444,7 +442,7 @@ INSERT INTO evento (CPF, nome, lugar, dia, horario, valor) VALUES
 ('10000000050','Felipe Martins','Crematório Central II','2024-03-06','10:00:00',3500.00);
 
 -- ============================================
--- 10) COMPRAS (50 registros) - itens repetidos: 'Coroa','Velas','Urna','Transporte','Lápide','Buquê', etc.
+-- 10) COMPRAS (50 registros)
 -- ============================================
 INSERT INTO compra (CNPJ, ID_evento, valor, item, quantidade, data_compra, horario) VALUES
 ('20000000000303',3,300.00,'Coroa Simples',3,'2024-01-16','09:00:00'),
@@ -497,7 +495,7 @@ INSERT INTO compra (CNPJ, ID_evento, valor, item, quantidade, data_compra, horar
 ('20000000005050',50,190.00,'Velas de Altar',8,'2024-03-04','11:50:00');
 
 -- ============================================
--- 11) FUNCIONARIO_EVENTO (várias associações) - garanto que cada evento tem pelo menos 1 funcionário
+-- 11) FUNCIONARIO_EVENTO (várias associações)
 -- ============================================
 INSERT INTO funcionario_evento (CPF, ID_evento) VALUES
 ('30000000001',1),('30000000002',1),('30000000003',2),('30000000004',2),('30000000005',3),
@@ -520,8 +518,7 @@ INSERT INTO funcionario_evento (CPF, ID_evento) VALUES
 ('30000000021',46),('30000000022',47),('30000000023',48),('30000000024',49),('30000000025',50);
 
 -- ============================================
--- 12) EVENTO_SEPULTAMENTO (50 registros) - local_destino refere quadra/setor/número conforme localizacao_tumulo
--- repeti quadras e setores conforme pedido
+-- 12) EVENTO_SEPULTAMENTO (50 registros)
 -- ============================================
 INSERT INTO evento_sepultamento (ID_evento, local_destino) VALUES
 (1,'Quadra A, Setor 1, Número 101'),
@@ -576,7 +573,7 @@ INSERT INTO evento_sepultamento (ID_evento, local_destino) VALUES
 (50,'Quadra B, Setor 2, Número 213');
 
 -- ============================================
--- 13) EVENTO_CREMAÇÃO (50 registros) - associa forno (1..5 repetidos)
+-- 13) EVENTO_CREMAÇÃO (50 registros) - associa forno
 -- ============================================
 INSERT INTO evento_cremacao (ID_evento, forno) VALUES
 (1,1),(2,2),(3,3),(4,4),(5,5),
@@ -591,7 +588,7 @@ INSERT INTO evento_cremacao (ID_evento, forno) VALUES
 (46,1),(47,2),(48,3),(49,4),(50,5);
 
 -- ============================================
--- 14) EVENTO_VELORIO (50 registros) - salas repetidas (1..10)
+-- 14) EVENTO_VELORIO (50 registros)
 -- ============================================
 INSERT INTO evento_velorio (ID_evento, sala) VALUES
 (1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10),
