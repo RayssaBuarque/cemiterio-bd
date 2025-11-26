@@ -64,7 +64,7 @@ A seguir, a lista dos membros da equipe que contribuíram ativamente para a mode
 
 | Nome | GitHub | Função Principal |
 | :--- | :---: | :---: |
-| **Ana Julia Silva** | [@najusilva](https://github.com/najusilva) | back-end |
+| **Ana Julia Silva** 💋 | [@najusilva](https://github.com/najusilva) | back-end |
 | **Eduardo Araujo** 👽 | [@F1NH4WK](https://github.com/F1NH4WK) | front-end |
 | **Rayssa Buarque** 🦉 | [@RayssaBuarque](https://github.com/RayssaBuarque) | back-end |
 | **Rebecka Bocci** | [@NightHuntress141](https://github.com/NightHuntress141) | front-end |
