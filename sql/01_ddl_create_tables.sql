@@ -52,7 +52,7 @@ CREATE TABLE falecido ( ------------
     data_falecimento DATE,
     data_nascimento DATE,
     motivo VARCHAR(200),
-	ID_tumulo INT UNIQUE,
+	ID_tumulo INT,
 	PRIMARY KEY (CPF, nome),
 	FOREIGN KEY (CPF) REFERENCES titular(CPF),
 	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)

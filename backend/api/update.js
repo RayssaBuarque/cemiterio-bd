@@ -51,7 +51,7 @@ const updateTitular = (db) => {
 const updateTumulo = (db) => {
   return async (req, res) => {
     const { id_tumulo } = req.params;
-    const { status, tipo, capacidade, quadra, setor, numero } = req.body;
+    const { status, tipo, capacidade, quadra, setor, atual, numero } = req.body;
 
     try {
       if (!id_tumulo) {
@@ -75,12 +75,13 @@ const updateTumulo = (db) => {
         SET status = COALESCE($1, status),
             tipo = COALESCE($2, tipo),
             capacidade = COALESCE($3, capacidade)
+            atual = COALESCE($4, atual)
         WHERE id_tumulo = $4
         RETURNING *;
       `;
 
       const tumuloResult = await db.query(updateTumuloQuery, [
-        status, tipo, capacidade, id_tumulo
+        status, tipo, capacidade, id_tumulo, atual
       ]);
 
       // Atualiza a tabela localizacao_tumulo se os campos foram fornecidos
