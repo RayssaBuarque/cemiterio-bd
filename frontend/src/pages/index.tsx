@@ -9,6 +9,7 @@ import api from '../services/api';
 import SideBar from '@/base/Sidebar';
 import DashboardCard from '@/components/DashboardCard';;
 import CustoTotalChart from '@/components/CustoTotalChart';
+import TopFornecedoresChart  from '@/components/TopFornecedoresChart';
 import Image from 'next/image';
 
 // Cores para os gráficos
@@ -183,29 +184,10 @@ const Dashboard = () => {
                             </ChartWrapper>
 
                             {/* Gráfico de Barras: Fornecedores Mais Usados */}
-                            <ChartWrapper>
-                                <ChartTitle>Top Fornecedores por Evento</ChartTitle>
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart
-                                        data={fornecedorData}
-                                        layout="vertical"
-                                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                    >
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                        <XAxis type="number" stroke="#888" />
-                                        <YAxis dataKey="nome" type="category" width={100} stroke="#888" />
-                                        <RechartsTooltip 
-                                            cursor={{fill: 'transparent'}}
-                                            contentStyle={{ backgroundColor: '#1E1E1E', border: 'none', borderRadius: '4px' }}
-                                        />
-                                        <Bar dataKey="total_usos" fill="#8884d8" radius={[0, 4, 4, 0]}>
-                                            {fornecedorData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </ChartWrapper>
+                            <TopFornecedoresChart 
+                                data={fornecedorData}
+                                isLoading={isLoading}
+                            />
                         </ChartsRow>
 
                         {/* 5. LISTA DE DETALHES (Opcional: Contratos Vencendo) */}
