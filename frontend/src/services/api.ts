@@ -64,7 +64,7 @@ const api = {
     deleteTitular: async (cpf: string): Promise<AxiosResponse<any>> => {
         return await axios.delete(`/titular/${cpf}`);
     },
-
+    
     // ==========================================
     // TÚMULOS
     // ==========================================
@@ -106,7 +106,7 @@ const api = {
     getFalecidosFiltro: async (filtros: IFiltros): Promise<AxiosResponse<any>> => {
         return await axios.get("/falecido/filtro", { params: filtros });
     },
-
+    
     getFalecidoPorCpf: async (cpf: string): Promise<AxiosResponse<any>> => {
         return await axios.get(`/falecido/${cpf}`);
     },
@@ -137,7 +137,7 @@ const api = {
             headers: { "Content-Type": "application/json" }
         });
     },
-
+    
     getFornecedoresMaiorGastos: async (): Promise<AxiosResponse<any>> => {
         return await axios.get("/fornecedoresMaiorGastos");
     },
@@ -194,6 +194,16 @@ const api = {
         return await axios.post("/evento", dadosEvento, {
             headers: { "Content-Type": "application/json" }
         });
+    },
+
+    updateEvento: async (id_evento: number | string, dadosEvento: IEventoInput): Promise<AxiosResponse<any>> => {
+        return await axios.put(`/evento/${id_evento}`, dadosEvento, {
+            headers: { "Content-Type": "application/json" }
+        });
+    },
+
+    deleteEvento: async (id_evento: string | string): Promise<AxiosResponse<any>> => {
+        return await axios.delete(`/evento/${id_evento}`);
     },
 
     getCustoTotalEventos: async (): Promise<AxiosResponse<any>> => {

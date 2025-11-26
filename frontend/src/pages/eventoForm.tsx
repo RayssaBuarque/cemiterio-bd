@@ -16,6 +16,8 @@ import SideBar from "@/base/Sidebar";
 const EventForm = () => {
     const router = useRouter();
     const { id } = router.query;
+    // Converta o id para string (caso seja array, pega o primeiro elemento)
+    const eventId = Array.isArray(id) ? id[0] : id;
 
     const [isLoading, setIsLoading] = useState(true);
     
@@ -121,13 +123,13 @@ const EventForm = () => {
         };
 
         try {
-            if (!id) {
+            if (!eventId) {
                 // MODO CRIAÇÃO
                 await api.createEvento(payload);
                 alert("Evento criado com sucesso!");
             } else {
                 // MODO EDIÇÃO (Assumindo rota de update existente ou adaptada)
-                // await api.updateEvento(id, payload);
+                await api.updateEvento(eventId, payload);
                 console.log("Simulando Update:", payload);
                 alert("Evento atualizado com sucesso!");
             }
@@ -142,8 +144,8 @@ const EventForm = () => {
     const removeEvent = async () => {
         if (!confirm("Tem certeza que deseja excluir este evento?")) return;
         try {
-            // await api.deleteEvento(id);
-            console.log("Simulando Delete ID:", id);
+            await api.deleteEvento(eventId);
+            console.log("Simulando Delete ID:", eventId);
             router.push('/eventos');
         } catch (err) {
             console.error(err);

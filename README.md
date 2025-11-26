@@ -11,6 +11,7 @@ sepultamentos.
 
 #### 1. **Crie o banco de dados no PostgreSQL**
 - Crie um servidor no PgAdmin e copie em ordem o SQL dos arquivos na pasta /sql 
+- [Vídeo explicativo sobre como montar o BD](https://www.youtube.com/watch?v=9bLcnLmpuGY)
 
 #### 2. **Instale as dependências**
 ```bash

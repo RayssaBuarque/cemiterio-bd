@@ -320,11 +320,90 @@ const updateFuncionario = (db) => {
   };
 };
 
+//-------------------------------------------------------------------------//
+//                                EVENTO                                   //
+//-_______________________________________________________________________-//
+const updateEvento = (db) => {
+  return async (req, res) => {
+    const { id_evento } = req.params;
+    const { lugar, dia, horario, valor, funcionarios } = req.body;
+
+    try {
+      if (!id_evento) {
+        return res.status(400).json({ error: "ID do evento é obrigatório" });
+      }
+
+      // Verifica se o evento existe
+      const checkQuery = 'SELECT * FROM evento WHERE id_evento = $1';
+      const checkResult = await db.query(checkQuery, [id_evento]);
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({ error: "Evento não encontrado" });
+      }
+
+      // INÍCIO DA TRANSAÇÃO
+      await db.query("BEGIN");
+
+      // Atualiza o evento
+      const updateEventoQuery = `
+        UPDATE evento 
+        SET lugar = COALESCE($1, lugar),
+            dia = COALESCE($2, dia),
+            horario = COALESCE($3, horario),
+            valor = COALESCE($4, valor)
+        WHERE id_evento = $5
+        RETURNING *;
+      `;
+
+      const values = [lugar, dia, horario, valor, id_evento];
+      const result = await db.query(updateEventoQuery, values);
+
+      // ATUALIZA OS FUNCIONÁRIOS ALOCADOS (se fornecidos)
+      if (funcionarios !== undefined) {
+        // Remove alocações existentes
+        await db.query('DELETE FROM funcionario_evento WHERE id_evento = $1', [id_evento]);
+
+        // Insere novas alocações se houver funcionários
+        if (Array.isArray(funcionarios) && funcionarios.length > 0) {
+          const insertValues = funcionarios.map((cpf, index) => 
+            `($1, $${index + 2})`
+          ).join(', ');
+          
+          const insertQuery = `
+            INSERT INTO funcionario_evento (id_evento, cpf) 
+            VALUES ${insertValues}
+          `;
+          
+          await db.query(insertQuery, [id_evento, ...funcionarios]);
+        }
+      }
+
+      // COMMIT FINAL
+      await db.query("COMMIT");
+
+      return res.status(200).json({
+        message: "Evento atualizado com sucesso",
+        evento: result.rows[0]
+      });
+
+    } catch (error) {
+      // ROLLBACK EM CASO DE ERRO
+      await db.query("ROLLBACK");
+      console.error("Erro detalhado ao atualizar evento:", error);
+      return res.status(500).json({ 
+        error: `Erro ao atualizar evento: ${error.message}`,
+        details: error.detail || 'Sem detalhes adicionais'
+      });
+    }
+  };
+};
+
 export default {
   updateTitular,
   updateTumulo,
   updateFalecido,
   updateContrato,
   updateFornecedor,
-  updateFuncionario
+  updateFuncionario,
+  updateEvento
 };
