@@ -100,7 +100,7 @@ CREATE TABLE compra (
     quantidade INT,
     data_compra DATE,
 	horario TIME,
-	PRIMARY KEY (CNPJ, ID_evento),
+	PRIMARY KEY (CNPJ, ID_evento, data_compra, horario),
     FOREIGN KEY (CNPJ) REFERENCES fornecedor(CNPJ),
 	FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
