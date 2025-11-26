@@ -2,6 +2,12 @@
 -- INSERÇÃO DE REGISTROS 
 -- ============================================
 
+TRUNCATE evento_velorio, evento_cremacao, evento_sepultamento,
+         funcionario_evento, compra, evento, falecido, contrato,
+         localizacao_tumulo, tumulo, telefone_fornecedor,
+         fornecedor, funcionario, titular
+RESTART IDENTITY CASCADE;
+
 -- 1. TITULARES (20 registros)
 INSERT INTO titular (CPF, nome, endereco, email, telefone) VALUES
 ('12345678901', 'João Silva', 'Rua A, 123 - Centro - São Paulo/SP', 'joao.silva@email.com', '11999990001'),
@@ -26,27 +32,36 @@ INSERT INTO titular (CPF, nome, endereco, email, telefone) VALUES
 ('00112233445', 'Laura Mendes', 'Praça T, 456 - Parque 10 - Manaus/AM', 'laura.mendes@email.com', '92999990020');
 
 -- 2. TÚMULOS (20 registros)
-INSERT INTO tumulo (ID_tumulo, status, tipo, capacidade) VALUES
-(1, 'Ocupado', 'Túmulo Familiar', 4),
-(2, 'Livre', 'Gaveta', 1),
-(3, 'Ocupado', 'Túmulo Duplo', 2),
-(4, 'Reservado', 'Mausoléu', 6),
-(5, 'Ocupado', 'Túmulo Simples', 1),
-(6, 'Livre', 'Túmulo Familiar', 4),
-(7, 'Ocupado', 'Gaveta', 1),
-(8, 'Reservado', 'Túmulo Duplo', 2),
-(9, 'Ocupado', 'Mausoléu', 6),
-(10, 'Livre', 'Túmulo Simples', 1),
-(11, 'Ocupado', 'Túmulo Familiar', 4),
-(12, 'Livre', 'Gaveta', 1),
-(13, 'Ocupado', 'Túmulo Duplo', 2),
-(14, 'Reservado', 'Mausoléu', 6),
-(15, 'Ocupado', 'Túmulo Simples', 1),
-(16, 'Livre', 'Túmulo Familiar', 4),
-(17, 'Ocupado', 'Gaveta', 1),
-(18, 'Reservado', 'Túmulo Duplo', 2),
-(19, 'Ocupado', 'Mausoléu', 6),
-(20, 'Livre', 'Túmulo Simples', 1);
+INSERT INTO tumulo (status, tipo, capacidade, atual) VALUES
+( 'Reservado', 'Túmulo Familiar', 4, 1),
+( 'Reservado', 'Gaveta', 1, 1),
+( 'Reservado', 'Túmulo Duplo', 2, 1),
+( 'Reservado', 'Mausoléu', 6, 1),
+( 'Reservado', 'Túmulo Simples', 1, 1),
+( 'Reservado', 'Túmulo Familiar', 4, 1),
+( 'Reservado', 'Gaveta', 1, 1),
+( 'Reservado', 'Túmulo Duplo', 2, 1),
+( 'Reservado', 'Mausoléu', 6, 1),
+( 'Reservado', 'Túmulo Simples', 1, 1),
+( 'Reservado', 'Túmulo Familiar', 4, 1),
+( 'Reservado', 'Gaveta', 1, 1),
+( 'Reservado', 'Túmulo Duplo', 2, 1),
+( 'Reservado', 'Mausoléu', 6, 1),
+( 'Reservado', 'Túmulo Simples', 1, 1),
+( 'Reservado', 'Túmulo Familiar', 4, 1),
+( 'Reservado', 'Gaveta', 1, 1),
+( 'Reservado', 'Túmulo Duplo', 2, 1),
+( 'Reservado', 'Mausoléu', 6, 1),
+( 'Reservado', 'Túmulo Simples', 1, 0),
+( 'Vazio', 'Túmulo Simples', 1, 0),
+( 'Vazio', 'Túmulo Simples', 1, 0),
+( 'Cheio', 'Túmulo Simples', 1, 0),
+( 'Cheio', 'Túmulo Simples', 1, 1),
+( 'Cheio', 'Túmulo Simples', 1, 1),
+( 'Cheio', 'Túmulo Simples', 1, 1);
+
+
+
 
 -- 3. LOCALIZAÇÃO_TUMULO (20 registros)
 INSERT INTO localizacao_tumulo (ID_tumulo, quadra, setor, numero) VALUES
@@ -57,49 +72,49 @@ INSERT INTO localizacao_tumulo (ID_tumulo, quadra, setor, numero) VALUES
 
 -- 4. CONTRATOS (20 registros)
 INSERT INTO contrato (CPF, ID_tumulo, data_inicio, prazo_vigencia, valor, status) VALUES
-('12345678901', 1, '2025-01-15', 50, 15000.00, 'Ativo'),
-('23456789012', 2, '2025-03-20', 25, 8000.00, 'Ativo'),
-('34567890123', 3, '2025-11-10', 30, 12000.00, 'Ativo'),
-('45678901234', 4, '2025-05-05', 100, 35000.00, 'Reservado'),
-('56789012345', 5, '2025-02-28', 20, 5000.00, 'Ativo'),
-('67890123456', 6, '2025-07-15', 40, 18000.00, 'Ativo'),
-('78901234567', 7, '2025-08-10', 15, 6000.00, 'Ativo'),
-('89012345678', 8, '2025-09-25', 35, 14000.00, 'Reservado'),
-('90123456789', 9, '2025-06-30', 80, 28000.00, 'Ativo'),
-('01234567890', 10, '2025-01-05', 10, 4500.00, 'Ativo'),
-('11223344556', 11, '2025-04-18', 60, 22000.00, 'Ativo'),
-('22334455667', 12, '2025-11-12', 20, 7000.00, 'Ativo'),
-('33445566778', 13, '2025-08-22', 30, 11000.00, 'Ativo'),
-('44556677889', 14, '2025-03-08', 90, 32000.00, 'Reservado'),
-('55667788990', 15, '2025-05-14', 25, 8500.00, 'Ativo'),
-('66778899001', 16, '2025-12-01', 45, 19000.00, 'Ativo'),
-('77889900112', 17, '2025-10-19', 15, 5500.00, 'Ativo'),
-('88990011223', 18, '2025-04-25', 40, 16000.00, 'Reservado'),
-('99001122334', 19, '2025-02-28', 70, 25000.00, 'Ativo'),
-('00112233445', 20, '2025-06-10', 12, 4800.00, 'Ativo');
+('12345678901', 1, '2020-01-15', 2350, 15000.00, 'Ativo'),
+('23456789012', 2, '2021-03-20', 4525, 8000.00, 'Ativo'),
+('34567890123', 3, '2019-11-10', 3630, 12000.00, 'Ativo'),
+('45678901234', 4, '2022-05-05', 67100, 35000.00, 'Reservado'),
+('56789012345', 5, '2023-02-28', 22350, 5000.00, 'Ativo'),
+('67890123456', 6, '2021-07-15', 4340, 18000.00, 'Ativo'),
+('78901234567', 7, '2020-12-10', 10005, 6000.00, 'Ativo'),
+('89012345678', 8, '2022-09-25', 31255, 14000.00, 'Reservado'),
+('90123456789', 9, '2018-06-30', 83690, 28000.00, 'Ativo'),
+('01234567890', 10, '2023-01-05', 12340, 4500.00, 'Ativo'),
+('11223344556', 11, '2017-04-18', 36000, 22000.00, 'Ativo'),
+('22334455667', 12, '2022-11-12', 27770, 7000.00, 'Ativo'),
+('33445566778', 13, '2021-08-22', 3044, 11000.00, 'Ativo'),
+('44556677889', 14, '2023-03-08', 90333, 32000.00, 'Reservado'),
+('55667788990', 15, '2020-05-14', 252222, 8500.00, 'Ativo'),
+('66778899001', 16, '2022-12-01', 45112, 19000.00, 'Ativo'),
+('77889900112', 17, '2021-10-19', 1534434, 5500.00, 'Ativo'),
+('88990011223', 18, '2023-04-25', 4054, 16000.00, 'Reservado'),
+('99001122334', 19, '2019-02-28', 702346, 25000.00, 'Ativo'),
+('00112233445', 20, '2023-06-10', 120000, 4800.00, 'Ativo');
 
 -- 5. FALECIDOS (20 registros)
 INSERT INTO falecido (CPF, nome, data_falecimento, data_nascimento, motivo, ID_tumulo) VALUES
-('12345678901', 'Antonio Silva', '2023-01-10', '1945-03-15', 'Causas naturais', 1),
-('23456789012', 'Fernanda Lima', '2024-02-20', '1978-07-22', 'Acidente', 3),
-('34567890123', 'Roberto Alves', '2022-12-05', '1952-11-30', 'Doença', 5),
+('12345678901', 'Antonio Silva', '2023-01-10', '1945-03-15', 'Comeu um pastel do Panelas', 1),
+('23456789012', 'Fernanda Lima', '2024-02-20', '1978-07-22', 'Fadado a falhar', 3),
+('34567890123', 'Roberto Alves', '2022-12-05', '1952-11-30', 'Beta', 5),
 ('45678901234', 'Carla Santos', '2023-08-15', '1965-04-18', 'Causas naturais', 7),
 ('56789012345', 'Miguel Costa', '2024-01-30', '1948-09-12', 'Doença', 9),
 ('67890123456', 'Beatriz Oliveira', '2022-11-25', '1972-02-28', 'Acidente', 11),
-('78901234567', 'Rafael Pereira', '2023-05-18', '1958-12-05', 'Causas naturais', 13),
+('78901234567', 'Rafael Pereira', '2023-05-18', '1958-12-05', 'Bungie Jumping de uma ponte', 13),
 ('89012345678', 'Daniela Rodrigues', '2024-03-12', '1969-06-20', 'Doença', 15),
 ('90123456789', 'Sérgio Nunes', '2022-09-08', '1943-08-15', 'Causas naturais', 17),
-('01234567890', 'Larissa Castro', '2023-12-01', '1975-01-25', 'Acidente', 19),
-('11223344556', 'Gustavo Mendes', '2024-04-05', '1955-10-08', 'Doença', 2),
+('01234567890', 'Larissa Castro', '2023-12-01', '1975-01-25', 'Mordeu um morcego', 19),
+('11223344556', 'Gustavo Mendes', '2024-04-05', '1955-10-08', 'Arrastou pra cima', 2),
 ('22334455667', 'Patrícia Rocha', '2023-07-22', '1962-03-14', 'Causas naturais', 4),
 ('33445566778', 'Marcelo Dias', '2022-10-30', '1947-07-19', 'Doença', 6),
 ('44556677889', 'Tatiane Barbosa', '2024-01-15', '1970-11-03', 'Acidente', 8),
-('55667788990', 'Leonardo Correia', '2023-09-28', '1950-05-27', 'Causas naturais', 10),
+('55667788990', 'Leonardo Correia', '2023-09-28', '1950-05-27', 'Abraçou um cacto', 10),
 ('66778899001', 'Vanessa Monteiro', '2022-12-20', '1967-09-08', 'Doença', 12),
 ('77889900112', 'Felipe Cardoso', '2024-02-10', '1940-12-12', 'Causas naturais', 14),
-('88990011223', 'Laura Ramos', '2023-11-05', '1973-04-17', 'Acidente', 16),
+('88990011223', 'Laura Ramos', '2023-11-05', '1973-04-17', 'Afogou na lava', 16),
 ('99001122334', 'Bruno Ferreira', '2022-08-18', '1957-02-23', 'Doença', 18),
-('00112233445', 'Juliana Almeida', '2024-03-25', '1964-06-30', 'Causas naturais', 20);
+('00112233445', 'Juliana Almeida', '2024-03-25', '1964-06-30', 'Experienciou Energia Cinética', 20);
 
 -- 6. FORNECEDORES (20 registros)
 INSERT INTO fornecedor (CNPJ, nome, endereco) VALUES
@@ -161,32 +176,30 @@ INSERT INTO funcionario (CPF, nome, funcao, modelo_contrato, horas_semanais, sal
 ('00311122200', 'Helena Coordenadora', 'Coordenadora Eventos', 'CLT', 44, 4800.00);
 
 -- 9. EVENTOS (20 registros)
-INSERT INTO evento (ID_evento, lugar, dia, horario, valor) VALUES
-(1, 'Capela São João', '2024-01-15', '14:00:00', 2500.00),
-(2, 'Sala Velório Paz', '2024-01-16', '16:00:00', 1800.00),
-(3, 'Crematório Norte', '2024-01-17', '10:00:00', 3200.00),
-(4, 'Cemitério Eterno Descanso', '2024-01-18', '15:00:00', 1500.00),
-(5, 'Capela São João', '2024-01-19', '09:00:00', 2200.00),
-(6, 'Sala Velório Esperança', '2024-01-20', '11:00:00', 1900.00),
-(7, 'Crematório Oeste', '2024-01-21', '14:30:00', 3100.00),
-(8, 'Cemitério Eterno Descanso', '2024-01-22', '16:30:00', 1400.00),
-(9, 'Capela Divino Espírito', '2024-01-23', '08:00:00', 2600.00),
-(10, 'Sala Velório Esperança', '2024-01-24', '13:00:00', 1700.00),
-(11, 'Crematório Leste', '2024-01-25', '15:00:00', 3300.00),
-(12, 'Cemitério Vale da Saudade', '2024-01-26', '10:30:00', 1600.00),
-(13, 'Capela Nossa Senhora', '2024-01-27', '17:00:00', 2400.00),
-(14, 'Sala Velório Esperança', '2024-01-28', '12:00:00', 2000.00),
-(15, 'Crematório Norte', '2024-01-29', '09:30:00', 3000.00),
-(16, 'Cemitério Eterno Descanso', '2024-01-30', '14:00:00', 1300.00),
-(17, 'Capela São João', '2024-01-31', '11:30:00', 2700.00),
-(18, 'Sala Velório Esperança', '2024-02-01', '15:30:00', 1850.00),
-(19, 'Crematório Sul', '2024-02-02', '13:30:00', 3150.00),
-(20, 'Cemitério Vale da Saudade', '2024-02-03', '16:00:00', 1450.00);
+INSERT INTO evento (CPF, nome, lugar, dia, horario, valor) VALUES
+('12345678901', 'Antonio Silva', 'Capela São João', '2024-01-15', '14:00:00', 2500.00),
+('23456789012', 'Fernanda Lima', 'Sala Velório Paz', '2024-01-16', '16:00:00', 1800.00),
+('34567890123', 'Roberto Alves', 'Crematório Central', '2024-01-17', '10:00:00', 3200.00),
+('45678901234', 'Carla Santos', 'Cemitério Jardim da Paz', '2024-01-18', '15:00:00', 1500.00),
+('56789012345', 'Miguel Costa', 'Capela Santa Maria', '2024-01-19', '09:00:00', 2200.00),
+( '67890123456', 'Beatriz Oliveira', 'Sala Velório Esperança', '2024-01-20', '11:00:00', 1900.00),
+( '78901234567', 'Rafael Pereira', 'Crematório Oeste', '2024-01-21', '14:30:00', 3100.00),
+( '89012345678', 'Daniela Rodrigues', 'Cemitério São Pedro', '2024-01-22', '16:30:00', 1400.00),
+( '90123456789', 'Sérgio Nunes', 'Capela Divino Espírito', '2024-01-23', '08:00:00', 2600.00),
+( '01234567890', 'Larissa Castro', 'Sala Velório Fé', '2024-01-24', '13:00:00', 1700.00),
+( '11223344556', 'Gustavo Mendes', 'Crematório Leste', '2024-01-25', '15:00:00', 3300.00),
+( '22334455667', 'Patrícia Rocha', 'Cemitério Parque das Flores', '2024-01-26', '10:30:00', 1600.00),
+( '33445566778', 'Marcelo Dias', 'Capela Nossa Senhora', '2024-01-27', '17:00:00', 2400.00),
+( '44556677889', 'Tatiane Barbosa', 'Sala Velório Luz', '2024-01-28', '12:00:00', 2000.00),
+( '55667788990', 'Leonardo Correia', 'Crematório Norte', '2024-01-29', '09:30:00', 3000.00),
+( '66778899001', 'Vanessa Monteiro', 'Cemitério Eterno Descanso', '2024-01-30', '14:00:00', 1300.00),
+( '77889900112', 'Felipe Cardoso', 'Capela Santo Antônio', '2024-01-31', '11:30:00', 2700.00),
+( '88990011223', 'Laura Ramos', 'Sala Velório Consolação', '2024-02-01', '15:30:00', 1850.00),
+( '99001122334', 'Bruno Ferreira', 'Crematório Sul', '2024-02-02', '13:30:00', 3150.00),
+( '00112233445', 'Juliana Almeida', 'Cemitério Vale da Saudade', '2024-02-03', '16:00:00', 1450.00);
 
 -- 10. COMPRAS (20 registros)
 INSERT INTO compra (CNPJ, ID_evento, valor, item, quantidade, data_compra, horario) VALUES
-('12345678000101', 1, 500.00, 'Coroa de Flores', 2, '2024-01-14', '10:00:00'),
-('23456789000102', 2, 800.00, 'Lápide em Mármore', 1, '2024-01-15', '11:30:00'),
 ('34567890000103', 3, 300.00, 'Coroa Simples', 3, '2024-01-16', '09:00:00'),
 ('45678901000104', 4, 150.00, 'Velas Decorativas', 20, '2024-01-17', '14:20:00'),
 ('56789012000105', 5, 1200.00, 'Urna Premium', 1, '2024-01-18', '16:45:00'),
@@ -249,3 +262,33 @@ INSERT INTO evento_velorio (ID_evento, sala) VALUES
 (1, 1), (5, 2), (9, 3), (13, 4), (17, 5),
 (3, 1), (7, 2), (11, 3), (15, 4), (19, 5),
 (4, 1), (8, 2), (12, 3), (16, 4), (20, 5);
+
+
+
+-- CONTRATOS ADICIONAIS
+INSERT INTO contrato (CPF, ID_tumulo, data_inicio, prazo_vigencia, valor, status) VALUES
+('12345678901', 21, '2024-01-01', 30, 5000.00, 'Ativo'),
+('23456789012', 22, '2024-01-15', 45, 7500.00, 'Ativo'),
+('34567890123', 23, '2023-12-01', 60, 10000.00, 'Ativo');
+
+-- EVENTOS ADICIONAIS
+INSERT INTO evento (CPF, nome, lugar, dia, horario, valor) VALUES
+('12345678901', 'Antonio Silva', 'Capela Central', CURRENT_DATE + 1, '10:00:00', 3000.00),
+('23456789012', 'Fernanda Lima', 'Sala Velório Principal', CURRENT_DATE + 2, '14:00:00', 2500.00),
+('34567890123', 'Roberto Alves', 'Crematório Leste', CURRENT_DATE + 3, '16:00:00', 4000.00);
+
+-- FUNCIONÁRIOS ADICIONAIS
+INSERT INTO funcionario (CPF, nome, funcao, modelo_contrato, horas_semanais, salario) VALUES
+('44455566688', 'João Alocado', 'Coveiro', 'CLT', 44, 2500.00),
+('55566677799', 'Maria Livre', 'Recepcionista', 'CLT', 40, 2800.00);
+
+INSERT INTO funcionario_evento (CPF, ID_evento) VALUES
+('44455566688', 1),
+('44455566688', 2),
+('11122233344', 21);
+
+-- CONTRATOS A VENCER ADICIONAIS
+INSERT INTO contrato (CPF, ID_tumulo, data_inicio, prazo_vigencia, valor, status) VALUES
+('12345678901', 24, CURRENT_DATE, 25, 5000.00, 'Ativo'),
+('23456789012', 25, CURRENT_DATE, 10, 7500.00, 'Ativo'),
+('34567890123', 26, CURRENT_DATE, 60, 10000.00, 'Ativo');
