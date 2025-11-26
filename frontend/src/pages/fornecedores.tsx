@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { IFornecedorInput } from '../types'; // Certifique-se de exportar IFornecedorInput no types
+import { IFornecedorInput } from '../types';
 
 // components
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import FornecedorRow from '@/components/FornecedoresRow';// Componente que renderiza a linha individual
-
-import Image from 'next/image';
+import FornecedorRow from '@/components/FornecedoresRow';
+import FornecedorPopUp from '@/components/FornecedoresPopUp';
 
 const Fornecedores = () => {
 
-    // Estado tipado com a interface de Fornecedores
     const [fornecedores, setFornecedores] = useState<IFornecedorInput[]>([])
     const [filteredFornecedores, setFilteredFornecedores] = useState<IFornecedorInput[]>([])
     
-    const [isOpen, setisOpen] = useState(false)
+    const [isOpen, setisOpen] = useState(false) // Estado do modal
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -41,12 +39,20 @@ const Fornecedores = () => {
         }
     }
 
+    // Função chamada ao fechar o modal
+    const OnClosePopUp = async (shouldRefresh?: boolean) => {
+        setisOpen(false);
+        if (shouldRefresh) {
+            await getFornecedores();
+        }
+    }
+
     // Busca inicial
     useEffect(() => {
         getFornecedores()
     }, [])
 
-    // Lógica de Filtro (Busca por CNPJ, Nome ou Endereço)
+    // Lógica de Filtro
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
         const filtered = fornecedores.filter((fornecedor) => 
@@ -55,10 +61,9 @@ const Fornecedores = () => {
             fornecedor.endereco.toLowerCase().includes(lowerQuery)
         );
         setFilteredFornecedores(filtered);
-        setCurrentPage(1); // Reseta para página 1 ao filtrar
+        setCurrentPage(1);
     }, [query, fornecedores])
 
-    // Lógica de Paginação
     const totalPages = Math.ceil(filteredFornecedores.length / maxRows)
     const currentFornecedores = filteredFornecedores.slice(
         (currentPage - 1) * maxRows,
@@ -87,11 +92,13 @@ const Fornecedores = () => {
                             + Adicionar
                         </SecondaryButton>
 
+                        {/* Modal de Adição */}
+                        <FornecedorPopUp isOpen={isOpen} onClose={OnClosePopUp} />
+
                     </FornecedoresInteractions>
 
                 </FornecedoresTitle>
 
-                {/* Cabeçalho da Tabela */}
                 <FornecedoresGrid>
                     <label>CNPJ</label>
                     <label>Nome</label>
@@ -103,11 +110,12 @@ const Fornecedores = () => {
                         currentFornecedores.map((fornecedor, index) => {
                             return (
                                 <FornecedorRow
-                                    key={fornecedor.cnpj} // CNPJ é chave única
+                                    key={fornecedor.cnpj}
                                     isEven={index % 2 === 0}
                                     cnpj={fornecedor.cnpj}
                                     nome={fornecedor.nome}
                                     endereco={fornecedor.endereco}
+                                    telefone={fornecedor.telefone}
                                     updateList={getFornecedores} 
                                 />
                             )
@@ -120,8 +128,6 @@ const Fornecedores = () => {
 
                     {isLoading &&
                         <div className="allRow">
-                             {/* Insira seu LoadingSVG aqui se desejar */}
-                             <p>Carregando...</p>
                          </div>
                     }
 
@@ -235,14 +241,11 @@ const FornecedoresInteractions = styled.div`
     }
 `
 
-// GRID DEFINITION: Adaptado para 3 colunas (CNPJ, Nome, Endereço)
-// Layout: CNPJ (Médio), Nome (Grande), Endereço (Grande)
 const FornecedoresGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* CNPJ | Nome | Endereço */
     grid-template-columns: 1fr 2fr 3fr; 
     grid-column-gap: 1.5rem;
     align-items: center;

@@ -36,10 +36,11 @@ export interface IFalecidoInput {
 
 // === TÚMULOS ===
 export interface ITumuloInput {
-    id_tumulo: number,
+    id_tumulo: number
     status: 'Cheio' | 'Reservado' | 'Vazio';
     tipo: 'Túmulo Familiar' | 'Gaveta' | 'Mausoléu' | 'Túmulo Duplo';
     capacidade: number;
+    atual: number;
 }
 
 // === FORNECEDORES ===
@@ -47,6 +48,7 @@ export interface IFornecedorInput {
     cnpj: string;
     nome: string;
     endereco: string;
+    telefone: string;
 }
 
 // === COMPRAS ===
