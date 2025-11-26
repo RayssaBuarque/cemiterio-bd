@@ -104,14 +104,14 @@ const Dashboard = () => {
             // O JSON retorna {"upcoming_events": 2} (apenas a contagem).
             // O componente espera uma lista. Como não temos a lista, passamos array vazio
             // para evitar erro no .map, mas a contagem de '2' será perdida na visualização de lista atual.
-            const eventosList: never[] = []; 
+            const eventosList = Array.isArray(eventosRes.data) ? eventosRes.data : [];
 
             setData({
                 taxaOcupacao: taxaOcupacaoValor,
                 contratosAtivos: contratosRes.data?.active_contracts || 0,
                 faturamentoDoMes: faturamentoMesRes.data?.monthly_revenue || 0,
-                faturamentoAnual: chartData, // Aqui está a correção principal do gráfico
-                eventosProximos: eventosList,
+                faturamentoAnual: chartData,
+                eventosProximos: eventosList, // <--- Passando a lista real aqui
                 contratosVencendo: contratosFormatados
             });
 
@@ -153,7 +153,7 @@ const Dashboard = () => {
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         </CardIcon>
                         <div className="content">
-                            <span>Faturamento Mês</span>
+                            <span>Faturamento do Mês atual</span>
                             <h3>{formatCurrency(data.faturamentoDoMes)}</h3>
                         </div>
                     </KPICard>
@@ -163,7 +163,7 @@ const Dashboard = () => {
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
                         </CardIcon>
                         <div className="content">
-                            <span>Contratos Ativos</span>
+                            <span>Quantidade de Contratos Ativos</span>
                             <h3>{data.contratosAtivos}</h3>
                         </div>
                     </KPICard>
@@ -173,7 +173,7 @@ const Dashboard = () => {
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
                         </CardIcon>
                         <div className="content">
-                            <span>Taxa de Ocupação</span>
+                            <span>Taxa de Ocupação dos Túmulos</span>
 
                             {/* --- AQUI ESTÁ A MUDANÇA --- */}
                             {/* Antes era: <h3>{data.taxaOcupacao}%</h3> */}
@@ -238,18 +238,31 @@ const Dashboard = () => {
                         <SectionTitle>Eventos Próximos (7 dias)</SectionTitle>
                         <ListWrapper>
                             {data.eventosProximos.length > 0 ? (
-                                data.eventosProximos.map((evt) => (
-                                    <ListItem key={evt.id_evento}>
-                                        <div className="date-badge">
-                                            <span>{new Date(evt.dia).getDate()}</span>
-                                            <small>{new Date(evt.dia).toLocaleDateString('pt-BR', { month: 'short' })}</small>
-                                        </div>
-                                        <div className="info">
-                                            <strong>{evt.lugar}</strong>
-                                            <span>{evt.horario}</span>
-                                        </div>
-                                    </ListItem>
-                                ))
+                                data.eventosProximos.map((evt) => {
+                                    // Cria o objeto data para manipulação
+                                    const dataEvento = new Date(evt.dia);
+                                    
+                                    // Tratamento simples para remover os segundos do horário (ex: "14:00:00" -> "14:00")
+                                    const horarioFormatado = evt.horario.substring(0, 5);
+
+                                    return (
+                                        <ListItem key={evt.id_evento}>
+                                            <div className="date-badge">
+                                                {/* getDate() pega o dia do mês (1-31) */}
+                                                <span>{dataEvento.getDate()}</span>
+                                                
+                                                {/* toLocaleDateString pega o mês abreviado (nov, dez) */}
+                                                <small>
+                                                    {dataEvento.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')}
+                                                </small>
+                                            </div>
+                                            <div className="info">
+                                                <strong>{evt.lugar}</strong>
+                                                <span>{horarioFormatado}</span>
+                                            </div>
+                                        </ListItem>
+                                    );
+                                })
                             ) : (
                                 <p className="empty">Nenhum evento próximo.</p>
                             )}
@@ -258,7 +271,7 @@ const Dashboard = () => {
 
                     {/* Contratos Vencendo */}
                     <SectionContainer>
-                        <SectionTitle style={{ color: '#F44336' }}>⚠️ Contratos Vencendo (30 dias)</SectionTitle>
+                        <SectionTitle >⚠️ Contratos Vencendo (30 dias)</SectionTitle>
                         <ListWrapper>
                             <Table>
                                 <thead>
@@ -282,7 +295,7 @@ const Dashboard = () => {
                                             <td colSpan={3} className="empty">Nenhum contrato vencendo.</td>
                                         </tr>
                                     )}
-                                </tbody>
+                                </tbody>    
                             </Table>
                         </ListWrapper>
                     </SectionContainer>

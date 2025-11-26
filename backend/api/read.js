@@ -904,14 +904,15 @@ const getEventosProximos = (db) => {
   return async (req, res) => {
     try {
       const result = await db.query(`
-        SELECT COUNT(*) AS upcoming_events
+        SELECT id_evento, lugar, dia, horario 
         FROM evento 
         WHERE dia BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
+        ORDER BY dia ASC, horario ASC
       `);
-      
-      return res.json({
-        upcoming_events: parseInt(result.rows[0].upcoming_events)
-      });
+
+      // Retorna o array de objetos (as tuplas) diretamente
+      // result.rows será algo como: [{id_evento: 1, lugar: '...', ...}, {...}]
+      return res.json(result.rows);
 
     } catch (err) {
       console.error(err);
