@@ -35,6 +35,12 @@ const api = {
         });
     },
 
+    updateContrato: async (cpf: string, id_tumulo: number | string, dados: any): Promise<AxiosResponse<any>> => {
+        return await axios.put(`/contrato/${cpf}/${id_tumulo}`, dados, {
+            headers: { "Content-Type": "application/json" }
+        });
+    },
+
     getContratosVencendo: async (): Promise<AxiosResponse<any>> => {
         return await axios.get("/contratoVencendo");
     },
@@ -42,7 +48,6 @@ const api = {
     getContratosAtivos: async (): Promise<AxiosResponse<any>> => {
         return await axios.get("/contratosAtivos");
     },
-    
 
     // ==========================================
     // TITULARES
@@ -79,8 +84,8 @@ const api = {
     getTumuloFiltro: async (filtros: IFiltros): Promise<AxiosResponse<any>> => {
         return await axios.get("/tumulo/filtro", { params: filtros });
     },
-
-    createTumulo: async (dadosTumulo: ITumuloInput): Promise<AxiosResponse<any>> => {
+    
+    createTumulo: async (dadosTumulo: Omit<ITumuloInput, 'id_tumulo'>): Promise<AxiosResponse<any>> => {
         return await axios.post("/tumulo", dadosTumulo, {
             headers: { "Content-Type": "application/json" }
         });
@@ -94,6 +99,10 @@ const api = {
         return await axios.put(`/tumulo/${id_tumulo}`, dadosTumulo, {
             headers: { "Content-Type": "application/json" }
         });
+    },
+
+    deleteTumulo: async (id_tumulo: number | string): Promise<AxiosResponse<any>> => {
+        return await axios.delete(`/tumulo/${id_tumulo}`);
     },
 
     // ==========================================

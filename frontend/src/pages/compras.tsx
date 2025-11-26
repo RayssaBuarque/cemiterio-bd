@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import api from '../services/api';
 import { ICompras } from '../types'; 
 
@@ -8,15 +8,18 @@ import Button from '@/components/Button';
 import SecondaryButton from '@/components/SecondaryButton';
 import SideBar from '@/base/Sidebar';
 import CompraRow from '@/components/CompraRow';
-import CompraPopUp from '@/components/CompraPopUp'; // Importando o Modal
+import CompraPopUp from '@/components/CompraPopUp'; 
 
 const Compras = () => {
 
     const [compras, setCompras] = useState<ICompras[]>([])
     const [filteredCompras, setFilteredCompras] = useState<ICompras[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Controle do modal
+    const [isOpen, setisOpen] = useState(false) 
     const [isLoading, setisLoading] = useState(true)
+
+    // Estado para o Feedback (Toast)
+    const [showFeedback, setShowFeedback] = useState(false);
 
     // Paginação e Filtro
     const [currentPage, setCurrentPage] = useState(1)
@@ -29,8 +32,19 @@ const Compras = () => {
         try {
             const { data } = await api.getCompras()
             if (data) {
-                setCompras(data);
-                setFilteredCompras(data);
+                // LÓGICA DE ORDENAÇÃO: Mais recentes primeiro
+                const sortedData = data.sort((a: ICompras, b: ICompras) => {
+                    const dateA = new Date(a.data_compra).getTime();
+                    const dateB = new Date(b.data_compra).getTime();
+                    // Se as datas forem iguais, tenta desempatar pelo horário (opcional)
+                    if (dateA === dateB) {
+                        return (b.horario || '').localeCompare(a.horario || '');
+                    }
+                    return dateB - dateA; // Decrescente
+                });
+
+                setCompras(sortedData);
+                setFilteredCompras(sortedData);
             }
         } catch (error) {
             console.error("Erro ao buscar compras:", error)
@@ -44,6 +58,13 @@ const Compras = () => {
         setisOpen(false);
         if (shouldRefresh) {
             await getCompras();
+            
+            // Ativa o feedback visual
+            setShowFeedback(true);
+            // Remove o feedback após 3 segundos
+            setTimeout(() => {
+                setShowFeedback(false);
+            }, 3000);
         }
     }
 
@@ -52,7 +73,7 @@ const Compras = () => {
         getCompras()
     }, [])
 
-    // Lógica de Filtro (Busca por CNPJ ou ID do Evento)
+    // Lógica de Filtro 
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
         const filtered = compras.filter((compra) => 
@@ -73,6 +94,13 @@ const Compras = () => {
         <>
             <SideBar name={"Compras"} />
             <ComprasContainer>
+                {/* COMPONENTE DE FEEDBACK */}
+                {showFeedback && (
+                    <ToastMessage>
+                        <span>✅</span> Alteração realizada com sucesso!
+                    </ToastMessage>
+                )}
+
                 <ComprasTitle>
                     <h5>Compras</h5>
 
@@ -91,14 +119,12 @@ const Compras = () => {
                             + Adicionar
                         </SecondaryButton>
 
-                        {/* Modal de Adição */}
                         <CompraPopUp isOpen={isOpen} onClose={OnClosePopUp} />
 
                     </ComprasInteractions>
 
                 </ComprasTitle>
 
-                {/* Cabeçalho da Tabela - Grid alinhado com CompraRow */}
                 <ComprasGrid>
                     <label>CNPJ</label>
                     <label>Evento</label>
@@ -111,13 +137,12 @@ const Compras = () => {
                 <ComprasWrapper>
                     {!isLoading &&
                         currentCompras.map((compra, index) => {
-                            // Chave única composta para o map, pois pode não haver ID único
                             const uniqueKey = `${compra.cnpj}-${compra.id_evento}-${compra.data_compra}-${compra.horario}`;
                             return (
                                 <CompraRow
                                     key={uniqueKey}
                                     isEven={index % 2 === 0}
-                                    {...compra} // Passa todas as props (cnpj, id_evento, etc)
+                                    {...compra} 
                                     updateList={getCompras} 
                                 />
                             )
@@ -130,7 +155,7 @@ const Compras = () => {
 
                     {isLoading &&
                         <div className="allRow">
-       
+                            <p>Carregando...</p>
                         </div>
                     }
 
@@ -170,6 +195,34 @@ export default Compras;
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
+
+// Animação para o Toast
+const slideIn = keyframes`
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+`;
+
+const ToastMessage = styled.div`
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background-color: var(--background-neutrals-secondary);
+    border-left: 5px solid #4CAF50; /* Verde Sucesso */
+    color: var(--content-neutrals-primary);
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font: 700 1rem 'At Aero Bold';
+    animation: ${slideIn} 0.3s ease-out;
+
+    span {
+        font-size: 1.2rem;
+    }
+`;
 
 const ComprasContainer = styled.div`
     padding: 1.5rem;
@@ -244,8 +297,6 @@ const ComprasInteractions = styled.div`
     }
 `
 
-// GRID DEFINITION: Deve ser idêntico ao definido em CompraRow.tsx
-// 1.5fr 0.8fr 1fr 0.8fr 0.6fr 1fr
 const ComprasGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);

@@ -39,7 +39,7 @@ const TumuloRow = ({ id, status, tipo, capacidade, atual, isEven, updateList }: 
         if(!confirm(`Tem certeza que deseja remover o túmulo #${id}?`)) return;
 
         try {
-            // await api.deleteTumulo(id);
+            await api.deleteTumulo(id);
             console.log("Deletando túmulo", id);
             await updateList();
             setisModalOpen(false);

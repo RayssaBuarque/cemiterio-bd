@@ -290,10 +290,50 @@ const deleteFuncionario = (db) => {
   };
 };
 
+//-------------------------------------------------------------------------//
+//                              TUMULO                                     //
+//-_______________________________________________________________________-//
+
+
+const deleteTumulo = (db) => {
+  return async (req, res) => {
+    const { id_tumulo } = req.params;
+
+    try {
+      if (!id_tumulo) {
+        return res.status(400).json({ error: "id_tumulo é obrigatório" });
+      }
+
+      // Deletar o túmulo
+      const deleteTumuloQuery = `
+        DELETE FROM tumulo
+        WHERE id_tumulo = $1
+        RETURNING *;
+      `;
+
+      const resultado = await db.query(deleteTumuloQuery, [id_tumulo]);
+
+      if (resultado.rows.length === 0) {
+        return res.status(404).json({ error: "Túmulo não encontrado" });
+      }
+
+      return res.status(200).json({
+        message: "Túmulo deletado com sucesso",
+        id_tumulo
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Erro ao deletar túmulo: ${error.message}` });
+    }
+  };
+}
+
 export default {
   deleteContrato,
   deleteEvento,
   deleteFalecido,
   deleteFuncionario,
-  deleteTitular
+  deleteTitular,
+  deleteTumulo
 };

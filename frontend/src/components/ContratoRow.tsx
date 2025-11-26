@@ -37,7 +37,7 @@ const ContratoRow = ({ cpf, id_tumulo, data_inicio, valor, prazo_vigencia, statu
     const handleUpdate = async (data: IContrato) => {
         try {
             console.log("Atualizando contrato:", data);
-            // await api.updateContrato(cpf, id_tumulo, data);
+            await api.updateContrato(cpf, id_tumulo, data);
             await updateList(); 
             setisModalOpen(false);
         } catch (error) {

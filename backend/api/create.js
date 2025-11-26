@@ -176,30 +176,64 @@ const createFalecido = (db) => {
 //-_______________________________________________________________________-//
 const createContrato = (db) => {
   return async (req, res) => {
-    const {cpf,id_tumulo,data_inicio,prazo_vigencia,valor,status} = req.body;
+    const { cpf, id_tumulo, data_inicio, prazo_vigencia, valor, status } = req.body;
 
     try {
       if (!cpf || !id_tumulo) {
         return res.status(400).json({ error: "CPF e id_tumulo são obrigatórios" });
       }
 
-      const query = `
+      // 1. Inicia a transação (Atomicidade)
+      await db.query("BEGIN");
+
+      // 2. Verifica se o túmulo já está ocupado antes de tentar inserir
+      // Isso evita o erro de constraint antes dele acontecer
+      const checkTumulo = await db.query('SELECT status FROM tumulo WHERE id_tumulo = $1 FOR UPDATE', [id_tumulo]);
+      
+      if (checkTumulo.rows.length > 0 && checkTumulo.rows[0].status !== 'Vazio' && checkTumulo.rows[0].status !== 'Livre') {
+         await db.query("ROLLBACK");
+         return res.status(409).json({ error: "Este túmulo já não está mais disponível." });
+      }
+
+      // 3. Insere o contrato
+      const insertQuery = `
         INSERT INTO contrato (cpf, id_tumulo, data_inicio, prazo_vigencia, valor, status)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *;
       `;
 
-      const values = [cpf,id_tumulo,data_inicio,prazo_vigencia,valor,status];
+      const values = [cpf, id_tumulo, data_inicio, prazo_vigencia, valor, status];
+      const result = await db.query(insertQuery, values);
 
-      const result = await db.query(query, values);
+      // 4. ATUALIZAÇÃO AUTOMÁTICA DO TÚMULO
+      // Isso garante que ele saia da lista de disponíveis no seu Front-end
+      const updateTumuloQuery = `
+        UPDATE tumulo 
+        SET status = 'Reservado' 
+        WHERE id_tumulo = $1
+      `;
+      await db.query(updateTumuloQuery, [id_tumulo]);
+
+      // 5. Confirma a transação
+      await db.query("COMMIT");
 
       return res.status(201).json({
-        message: "Contrato criado com sucesso",
-        titular: result.rows[0]
+        message: "Contrato criado com sucesso e túmulo reservado.",
+        contrato: result.rows[0]
       });
 
     } catch (error) {
+      await db.query("ROLLBACK");
       console.error(error);
+
+      // Tratamento específico para o erro que você enviou
+      if (error.code === '23505') { // unique_violation
+        return res.status(409).json({ 
+            error: "Já existe um contrato vigente para este túmulo.",
+            solution: "Selecione outro túmulo ou cancele o contrato anterior."
+        });
+      }
+
       return res.status(500).json({ error: `Erro ao criar contrato:\n ${error.message} ` });
     }
   };

@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { ITumuloInput } from '../types'; // Certifique-se de exportar ITumuloInput no types
+import { ITumuloInput } from '../types';
 
 // components
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import TumuloRow from '../components/TumuloRow'; // Componente que renderiza a linha individual
-
-import Image from 'next/image';
+import TumuloRow from '../components/TumuloRow';
+import TumuloPopUp from '../components/TumuloPopUp'; 
 
 const Tumulos = () => {
 
@@ -41,6 +40,13 @@ const Tumulos = () => {
         }
     }
 
+    const handleClosePopUp = (refresh?: boolean) => {
+        setisOpen(false);
+        if (refresh) {
+            getTumulos();
+        }
+    }
+
     // Busca inicial
     useEffect(() => {
         getTumulos()
@@ -65,7 +71,7 @@ const Tumulos = () => {
         currentPage * maxRows
     )
 
-return (
+    return (
         <>
             <SideBar name={"Túmulos"} />
             <TumulosContainer>
@@ -89,13 +95,13 @@ return (
                     </TumulosInteractions>
                 </TumulosTitle>
 
-                {/* Cabeçalho da Tabela - ATUALIZADO com 5 colunas */}
+                {/* Cabeçalho da Tabela */}
                 <TumulosGrid>
                     <label>ID</label>
                     <label>Tipo</label>
                     <label>Status</label>
                     <label>Capacidade</label>
-                    <label>Atual</label> {/* NOVA COLUNA */}
+                    <label>Atual</label>
                 </TumulosGrid>
 
                 <TumulosWrapper>
@@ -109,7 +115,7 @@ return (
                                     tipo={tumulo.tipo}
                                     status={tumulo.status}
                                     capacidade={tumulo.capacidade}
-                                    atual={tumulo.atual} // Passando o valor atual
+                                    atual={tumulo.atual}
                                     updateList={getTumulos} 
                                 />
                             )
@@ -122,7 +128,7 @@ return (
 
                     {isLoading &&
                         <div className="allRow">
-                         {/* Loading spinner ou skeleton */}
+                            <p>Carregando...</p>
                         </div>
                     }
                 </TumulosWrapper>
@@ -152,6 +158,12 @@ return (
                     }
                 </TumulosFooter>
             </TumulosContainer>
+
+            {/* Injeção do Componente PopUp aqui */}
+            <TumuloPopUp 
+                isOpen={isOpen} 
+                onClose={handleClosePopUp} 
+            />
         </>
     )
 }
@@ -162,14 +174,13 @@ export default Tumulos;
 // STYLED COMPONENTS
 // ==========================================
 
-// ATUALIZADO: grid-template-columns para 5 colunas
 const TumulosGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
     /* ID | Tipo | Status | Capacidade | Atual */
-    grid-template-columns: 0.5fr 1.5fr 1fr 0.8fr 0.8fr; /* 5 colunas agora */
+    grid-template-columns: 0.5fr 1.5fr 1fr 0.8fr 0.8fr;
     grid-column-gap: 1.5rem;
     align-items: center;
     margin-bottom: 0.75rem;
@@ -179,9 +190,9 @@ const TumulosGrid = styled.div`
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        color: var(--content-neutrals-primary);
     }
 `
-
 
 const TumulosContainer = styled.div`
     padding: 1.5rem;
@@ -204,6 +215,11 @@ const TumulosTitle = styled.div`
     align-items: center;
     width: 100%;
     margin-bottom: 1.5rem;
+    
+    h5 {
+        font-family: 'At Aero Bold';
+        font-size: 1.5rem;
+    }
 `
 
 const TumulosFilter = styled.div`

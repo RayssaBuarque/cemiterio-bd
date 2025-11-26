@@ -41,12 +41,12 @@ export default function ContratoPopUp({ isOpen, onClose }: ContratoPopUpProps) {
         }
     }, [isOpen]);
 
-    // Filtra apenas túmulos com status 'Livre'
+    
     const tumulosDisponiveis = useMemo(() => {
         return tumulosList.filter(t => t.status === 'Vazio');
     }, [tumulosList]);
 
-    const postContrato = async (data: IContrato) => {
+   const postContrato = async (data: IContrato) => {
         try {
             // Ajuste de tipagem para envio
             const payload = {
@@ -54,20 +54,11 @@ export default function ContratoPopUp({ isOpen, onClose }: ContratoPopUpProps) {
                 id_tumulo: Number(data.id_tumulo),
                 valor: Number(data.valor),
                 prazo_vigencia: Number(data.prazo_vigencia),
-                // Converte a data string (YYYY-MM-DD) para timestamp se sua API esperar number,
-                // ou mantém string se a API esperar string. O tipo diz 'number', então:
-                data_inicio: new Date(data.data_inicio).getTime() 
+                data_inicio: data.data_inicio 
             };
 
             await api.createContrato(payload);
             
-            // Opcional: Atualizar o status do túmulo para 'Ocupado' ou 'Reservado' aqui
-            // dependendo da lógica do seu backend. Se o backend não fizer automático:
-            /*
-            if (data.status === 'Ativo') {
-                await api.updateTumulo(payload.id_tumulo, { status: 'Ocupado' });
-            }
-            */
 
             reset(); 
             onClose(true); 

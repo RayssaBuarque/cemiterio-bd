@@ -273,20 +273,14 @@ const updateFalecido = (db) => {
 //-_______________________________________________________________________-//
 const updateContrato = (db) => {
   return async (req, res) => {
-    const { id_contrato } = req.params;
+    // Certifique-se de que sua rota no Express esteja definida como:
+    // router.put('/contrato/:cpf/:id_tumulo', ...)
+    const { cpf, id_tumulo } = req.params;
     const { data_inicio, prazo_vigencia, valor, status } = req.body;
 
     try {
-      if (!id_contrato) {
-        return res.status(400).json({ error: "ID do contrato é obrigatório" });
-      }
-
-      // Verifica se o contrato existe
-      const checkQuery = 'SELECT * FROM contrato WHERE id_contrato = $1';
-      const checkResult = await db.query(checkQuery, [id_contrato]);
-      
-      if (checkResult.rows.length === 0) {
-        return res.status(404).json({ error: "Contrato não encontrado" });
+      if (!cpf || !id_tumulo) {
+        return res.status(400).json({ error: "CPF e ID do túmulo são obrigatórios nos parâmetros." });
       }
 
       const query = `
@@ -295,13 +289,19 @@ const updateContrato = (db) => {
             prazo_vigencia = COALESCE($2, prazo_vigencia),
             valor = COALESCE($3, valor),
             status = COALESCE($4, status)
-        WHERE id_contrato = $5
+        WHERE cpf = $5 AND id_tumulo = $6
         RETURNING *;
       `;
 
-      const values = [data_inicio, prazo_vigencia, valor, status, id_contrato];
+      const values = [data_inicio, prazo_vigencia, valor, status, cpf, id_tumulo];
 
       const result = await db.query(query, values);
+
+      // CORREÇÃO: Verifica se alguma linha foi alterada pelo UPDATE
+      // Se rowCount for 0, significa que não encontrou o contrato com esse CPF e Túmulo
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Contrato não encontrado para atualização." });
+      }
 
       return res.status(200).json({
         message: "Contrato atualizado com sucesso",

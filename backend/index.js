@@ -97,13 +97,13 @@ app.delete("/falecido", deleteRoutes.deleteFalecido(db));
 app.delete("/evento/:id_evento", deleteRoutes.deleteEvento(db));
 app.delete("/funcionario/:cpf", deleteRoutes.deleteFuncionario(db));
 app.delete("/titular/:cpf", deleteRoutes.deleteTitular(db));
-
+app.delete("/tumulo/:id_tumulo", deleteRoutes.deleteTumulo(db));
 // Rotas de ATUALIZAÇÃO
 app.put('/titular/:cpf', updateHandlers.updateTitular(db));
 app.put('/evento/:id_evento', updateHandlers.updateEvento(db));
 app.put('/tumulo/:id_tumulo', updateHandlers.updateTumulo(db));
 app.put('/falecido/:cpf', updateHandlers.updateFalecido(db));
-app.put('/contrato/:id_contrato', updateHandlers.updateContrato(db));
+app.put('/contrato/:cpf/:id_tumulo', updateHandlers.updateContrato(db));
 app.put('/fornecedor/:cnpj', updateHandlers.updateFornecedor(db));
 app.put('/funcionario/:cpf', updateHandlers.updateFuncionario(db));
 
