@@ -85,47 +85,29 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
         try {
             const idTumulo = Number(data.id_tumulo);
             const payload = {
-                ...data,
-                id_tumulo: idTumulo
+            ...data,
+            id_tumulo: idTumulo
             };
 
-            // 1. Cria o registro do falecido
+            console.log("Enviando dados para criar falecido:", payload);
+
+            // APENAS cria o falecido - o backend já cuida de incrementar o túmulo
             await api.createFalecido(payload);
-
-            // 2. Atualiza a quantidade (+1) no túmulo selecionado
-            const tumuloTarget = tumulosList.find(t => t.id_tumulo === idTumulo);
-            
-            if (tumuloTarget) {
-                // Recupera ocupação atual (assumindo 0 se indefinido)
-                const currentOcupacao = (tumuloTarget as any).ocupacao || 0;
-                const newOcupacao = currentOcupacao + 1;
-                
-                // Verifica se lotou para atualizar o status
-                let newStatus = tumuloTarget.status;
-                if (newOcupacao >= tumuloTarget.capacidade) {
-                    newStatus = 'Cheio';
-                } else if (tumuloTarget.status === 'Vazio') {
-                    // Opcional: Se era livre e recebeu 1 corpo (mas não lotou), 
-                    // pode mudar para 'Parcial' ou manter a lógica de negócio desejada.
-                    // Aqui mantemos 'Livre' ou mudamos para 'Ocupado' apenas se encher.
-                }
-
-                // Chama o update (certifique-se que este método existe no seu api.ts)
-                // Se não existir, use axios.put(`/tumulo/${idTumulo}`, ...)
-                if (api.updateTumulo) {
-                    await api.updateTumulo(idTumulo, {
-                        ...tumuloTarget,
-                        capacidade: newOcupacao,
-                        status: newStatus
-                    });
-                }
-            }
 
             reset(); 
             onClose(true); 
-        } catch (err) {
-            console.error("Erro ao cadastrar falecido:", err);
-            alert("Erro ao cadastrar falecido. Verifique os dados.");
+            
+        } catch (err: any) {
+            console.error("Erro detalhado ao cadastrar falecido:", err);
+            
+            // Log mais detalhado do erro
+            if (err.response) {
+            console.error("Status:", err.response.status);
+            console.error("Dados do erro:", err.response.data);
+            console.error("Headers:", err.response.headers);
+            }
+            
+            alert(err.response?.data?.error || "Erro ao cadastrar falecido. Verifique os dados.");
         }
     }
 

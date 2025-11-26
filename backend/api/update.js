@@ -69,19 +69,19 @@ const updateTumulo = (db) => {
       // Início da transação
       await db.query("BEGIN");
 
-      // Atualiza a tabela tumulo
+      // CORREÇÃO: Adicionada vírgula faltando e corrigidos os parâmetros
       const updateTumuloQuery = `
         UPDATE tumulo 
         SET status = COALESCE($1, status),
             tipo = COALESCE($2, tipo),
-            capacidade = COALESCE($3, capacidade)
+            capacidade = COALESCE($3, capacidade),
             atual = COALESCE($4, atual)
-        WHERE id_tumulo = $4
+        WHERE id_tumulo = $5
         RETURNING *;
       `;
 
       const tumuloResult = await db.query(updateTumuloQuery, [
-        status, tipo, capacidade, id_tumulo, atual
+        status, tipo, capacidade, atual, id_tumulo  // CORRIGIDO: 5 parâmetros
       ]);
 
       // Atualiza a tabela localizacao_tumulo se os campos foram fornecidos
@@ -107,8 +107,11 @@ const updateTumulo = (db) => {
 
     } catch (error) {
       await db.query("ROLLBACK");
-      console.error(error);
-      return res.status(500).json({ error: `Erro ao atualizar túmulo: ${error.message}` });
+      console.error("Erro detalhado ao atualizar túmulo:", error);
+      return res.status(500).json({ 
+        error: `Erro ao atualizar túmulo: ${error.message}`,
+        details: error.detail || 'Sem detalhes adicionais'
+      });
     }
   };
 };
