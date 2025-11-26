@@ -229,7 +229,7 @@ const RowWrapper = styled.div<{ $isEven: boolean }>`
     /* Destaque para as chaves relacionais */
     .highlight {
         font-weight: 700;
-        color: var(--brand-primary, #FFF); /* Ou uma cor de destaque da sua paleta */
+        /* Ou uma cor de destaque da sua paleta */
     }
 `
 

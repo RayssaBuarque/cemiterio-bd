@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { IContrato } from '@/types'; // Ajuste o caminho se necessário
+import { IContrato } from '../types'; 
 
 // components
 import Button from '@/components/Button';
 import SecondaryButton from '@/components/SecondaryButton';
 import SideBar from '@/base/Sidebar';
 import ContratoRow from '@/components/ContratoRow';
-
-import Image from 'next/image';
+import ContratoPopUp from '@/components/ContratoPopUp'; // Importando o Modal
 
 const Contratos = () => {
 
     const [contratos, setContratos] = useState<IContrato[]>([])
     const [filteredContratos, setFilteredContratos] = useState<IContrato[]>([])
     
-    const [isOpen, setisOpen] = useState(false)
+    const [isOpen, setisOpen] = useState(false) // Controle do modal
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -40,6 +39,14 @@ const Contratos = () => {
         }
     }
 
+    // Função chamada ao fechar o modal
+    const OnClosePopUp = async (shouldRefresh?: boolean) => {
+        setisOpen(false);
+        if (shouldRefresh) {
+            await getContratos();
+        }
+    }
+
     // Busca inicial
     useEffect(() => {
         getContratos()
@@ -57,7 +64,6 @@ const Contratos = () => {
         setCurrentPage(1); 
     }, [query, contratos])
 
-    // Lógica de Paginação
     const totalPages = Math.ceil(filteredContratos.length / maxRows)
     const currentContratos = filteredContratos.slice(
         (currentPage - 1) * maxRows,
@@ -85,6 +91,9 @@ const Contratos = () => {
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
+
+                        {/* Modal de Adição */}
+                        <ContratoPopUp isOpen={isOpen} onClose={OnClosePopUp} />
 
                     </ContratosInteractions>
 
@@ -122,7 +131,7 @@ const Contratos = () => {
 
                     {isLoading &&
                         <div className="allRow">
-          
+    
                         </div>
                     }
 
