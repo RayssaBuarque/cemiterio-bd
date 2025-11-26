@@ -84,7 +84,7 @@ const Events = () => {
                             <Button onClick={() => handleSearch(query)}>Consultar</Button>
                         </EventsFilter>
                         <span/>
-                        <SecondaryButton onClick={() => router.push({pathname: '/eventForm'})}>
+                        <SecondaryButton onClick={() => router.push({pathname: '/eventoForm'})}>
                             + Adicionar
                         </SecondaryButton> 
                     </EventsInteractions>

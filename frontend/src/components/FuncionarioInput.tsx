@@ -1,131 +1,182 @@
 import styled from "styled-components";
-import { IFuncionarioInput } from "../types"; // Importe sua interface se necessário
+import { IFuncionarioInput } from "../types";
 
 interface FuncionarioInputProps {
-    selectedFuncionarios: string[]; // Array de strings "id|nome"
+    funcionarios: IFuncionarioInput[]; // Lista de disponíveis para o horário
+    selectedFuncionarios: string[]; // Lista de selecionados ("cpf|nome")
     setSelectedFuncionarios: (funcionarios: string[]) => void;
-    funcionarios: IFuncionarioInput[]; // Lista de funcionários disponíveis vindos da API
 }
 
-const FuncionarioInput = ({ selectedFuncionarios = [], setSelectedFuncionarios, funcionarios }: FuncionarioInputProps) => {
-    
-    const handleAdd = (funcionarioValue: string) => {
-        if (!funcionarioValue) return;
-        // Evita duplicatas
-        if (!selectedFuncionarios.includes(funcionarioValue)) {
-            setSelectedFuncionarios([...selectedFuncionarios, funcionarioValue])
-        }
-    }
+const FuncionarioInput = ({ funcionarios, selectedFuncionarios, setSelectedFuncionarios }: FuncionarioInputProps) => {
 
-    const handleRemove = (id: string) => {
-        setSelectedFuncionarios(selectedFuncionarios.filter(func => func.split("|")[0] !== id))
-    }
-    
-    // Filtra para não mostrar no Select quem já foi selecionado
-    const availableOptions = funcionarios.filter((func) => 
-        !selectedFuncionarios.some(selected => selected.split("|")[0] === func.cpf) 
-        // Nota: Troque 'func.cpf' por 'func.id' se o seu backend usar ID numérico
-    )
+    // Adiciona funcionário à lista do evento
+    const handleAdd = (value: string) => {
+        if (!value) return;
+        // Evita duplicatas
+        if (!selectedFuncionarios.includes(value)) {
+            setSelectedFuncionarios([...selectedFuncionarios, value]);
+        }
+    };
+
+    // Remove funcionário da lista do evento
+    const handleRemove = (cpfToRemove: string) => {
+        const newList = selectedFuncionarios.filter(item => {
+            const [cpf] = item.split('|');
+            return cpf !== cpfToRemove;
+        });
+        setSelectedFuncionarios(newList);
+    };
+
+    // Filtra a lista de opções para não mostrar quem já foi selecionado
+    const availableOptions = funcionarios.filter(func => 
+        !selectedFuncionarios.some(selected => selected.split('|')[0] === func.cpf)
+    );
 
     return (
-        <InputContainer>
-            <label>Funcionários Alocados</label>
+        <Container>
+            <Label>Equipe do Evento</Label>
             
-            {/* Lista de Selecionados (Tags) */}
-            {selectedFuncionarios.map((funcStr) => {
-                const [id, nome] = funcStr.split("|");
-                return(
-                    <InputRow key={id}>
-                        <input value={nome} readOnly/>
-                        <button type="button" onClick={() => handleRemove(id)}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M6.4 19L5 17.6L10.6 12L5 6.4L6.4 5L12 10.6L17.6 5L19 6.4L13.4 12L19 17.6L17.6 19L12 13.4L6.4 19Z" fill="var(--content-neutrals-primary)"/>
-                            </svg>
-                        </button>
-                    </InputRow>
-                )
-            })}
-
-            {/* Select para Adicionar */}
-            <InputRow>
-                <select 
+            <SelectionArea>
+                <Select 
                     onChange={(e) => {
                         handleAdd(e.target.value);
-                        e.target.value = "default"; // Reseta o select visualmente
+                        e.target.value = ""; // Reseta o select
                     }}
-                    defaultValue="default"
+                    defaultValue=""
+                    disabled={funcionarios.length === 0}
                 >
-                    <option value="default" disabled>Selecione um Funcionário...</option>
-                    {availableOptions.map((func) => {
-                        return(
-                            // Usando CPF como ID, ajuste se necessário
-                            <option key={func.cpf} value={`${func.cpf}|${func.nome}`}>
-                                {func.nome} - {func.funcao}
-                            </option>
-                        )
-                    })}
-                </select>
-            </InputRow>
-        </InputContainer>
-    )
-}
+                    <option value="" disabled>
+                        {funcionarios.length === 0 ? "Nenhum funcionário disponível neste horário" : "Selecione para adicionar..."}
+                    </option>
+                    {availableOptions.map(func => (
+                        <option key={func.cpf} value={`${func.cpf}|${func.nome}`}>
+                            {func.nome} - {func.funcao}
+                        </option>
+                    ))}
+                </Select>
+            </SelectionArea>
 
-export default FuncionarioInput
+            <SelectedList>
+                {selectedFuncionarios.length === 0 && (
+                    <EmptyState>Nenhum funcionário escalado.</EmptyState>
+                )}
+                
+                {selectedFuncionarios.map(item => {
+                    const [cpf, nome] = item.split('|');
+                    return (
+                        <Tag key={cpf}>
+                            <span>{nome}</span>
+                            <RemoveButton type="button" onClick={() => handleRemove(cpf)}>
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                    <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="currentColor"/>
+                                </svg>
+                            </RemoveButton>
+                        </Tag>
+                    );
+                })}
+            </SelectedList>
+        </Container>
+    );
+};
 
-const InputContainer = styled.div`
+export default FuncionarioInput;
+
+// ================= STYLES =================
+
+const Container = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
     width: 100%;
+`;
 
-    label {
-        font: 700 1rem/1.5rem 'At Aero Bold';
+const Label = styled.label`
+    font: 700 1rem/1.5rem 'At Aero Bold';
+    color: var(--content-neutrals-primary);
+`;
+
+const SelectionArea = styled.div`
+    width: 100%;
+`;
+
+const Select = styled.select`
+    width: 100%;
+    height: 3rem;
+    padding: 0.75rem 1rem;
+    background-color: transparent;
+    border: 1px solid var(--content-neutrals-primary);
+    border-radius: 4px;
+    font: 400 1rem 'At Aero';
+    color: var(--content-neutrals-primary);
+    transition: all 200ms ease-in-out;
+
+    &:focus {
+        border-color: var(--brand-primary);
+        outline: none;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    option {
+        background-color: var(--background-neutrals-secondary);
         color: var(--content-neutrals-primary);
     }
-`
+`;
 
-const InputRow = styled.div`
-    width: 100%;
-    gap: 1rem;
+const SelectedList = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0.5rem;
+    background-color: rgba(255,255,255,0.02);
+    border-radius: 4px;
+    border: 1px dashed var(--outline-neutrals-secondary);
+`;
+
+const EmptyState = styled.span`
+    font-size: 0.875rem;
+    color: var(--content-neutrals-secondary);
+    padding: 0.5rem;
+`;
+
+const Tag = styled.div`
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background-color: var(--brand-primary);
+    color: #fff;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    animation: fadeIn 0.2s ease-in-out;
 
-    input, select {
-        font: 400 1rem/1.5rem 'At Aero';
-        width: 100%;
-        height: 3rem;
-        padding: 0.75rem 1rem;
-        background-color: transparent;
-        transition: all 200ms ease-in-out;
-        border: 1px solid var(--content-neutrals-primary);
-        color: var(--content-neutrals-primary);
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+`;
 
-        &:hover, &:focus-visible{
-            background-color: var(--background-neutrals-secondary);
-        }
-
-        &:focus-visible{
-            border: 1px solid var(--brand-primary);
-            outline: none;
-        }
-        
-        option {
-            background-color: var(--background-neutrals-secondary);
-            color: var(--content-neutrals-primary);
-        }
+const RemoveButton = styled.button`
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    padding: 0;
+    
+    svg {
+        width: 10px;
+        height: 10px;
     }
 
-    button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0.5rem;
-        
-        &:hover svg path {
-            fill: var(--brand-primary);
-        }
+    &:hover {
+        opacity: 0.8;
     }
-`
+`;

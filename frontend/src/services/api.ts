@@ -90,6 +90,12 @@ const api = {
         return await axios.get("/tumulosMaisOcupados");
     },
 
+    updateTumulo: async (id_tumulo: number | string, dadosTumulo: ITumuloInput): Promise<AxiosResponse<any>> => {
+        return await axios.put(`/tumulo/${id_tumulo}`, dadosTumulo, {
+            headers: { "Content-Type": "application/json" }
+        });
+    },
+
     // ==========================================
     // FALECIDOS
     // ==========================================
