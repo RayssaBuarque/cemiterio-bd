@@ -21,8 +21,8 @@ const Dashboard = () => {
     const [localizacaoData, setLocalizacaoData] = useState<any[]>([]);
     const [fornecedorData, setFornecedorData] = useState<any[]>([]);
     const [contratosVencendo, setContratosVencendo] = useState<any[]>([]);
+    const [contratosAtivos, setContratosAtivos] = useState<any[]>([]);
     const [tumulosOcupados, setTumulosOcupados] = useState<any[]>([]);
-    
     const [custoChartData, setCustoChartData] = useState<any[]>([]);
 
     const fetchData = async () => {
@@ -35,17 +35,18 @@ const Dashboard = () => {
                 resLocal, 
                 resFornecedor,
                 resContratosVencendo,
+                resContratosAtivos,
                 resTumulos
             ] = await Promise.all([
                 api.getCustoTotalEventos(),
                 api.getLocalizacaoContratosAtivos(),
                 api.getFornecedorMaisUsadoCadaEvento(),
                 api.getContratosVencendo(),
+                api.getContratosAtivos(),
                 api.getTumulosMaisOcupados()
             ]);
 
-            // Tratamento de Custo Total
-            console.log('Dados de eventos:', resCusto.data);
+            // Tratamento de Custo Total;
             setCustoChartData(Array.isArray(resCusto.data) ? resCusto.data : []);
 
             // Tratamento de Localização (Para Pie Chart)
@@ -63,7 +64,12 @@ const Dashboard = () => {
             }
 
             if (resContratosVencendo.data) {
+                // console.log("Contratos Vencendo:", resContratosVencendo.data);
                 setContratosVencendo(Array.isArray(resContratosVencendo.data) ? resContratosVencendo.data : []);
+            }
+
+            if (resContratosAtivos.data) {
+                setContratosAtivos(resContratosAtivos.data.active_contracts);
             }
 
             if (resTumulos.data) {
@@ -99,25 +105,22 @@ const Dashboard = () => {
                      </LoadingWrapper>
                 ) : (
                     <ContentGrid>
-                        {/* 1. KPI CARDS ROW */}
+                        {/* 1. GRÁFICO DE CUSTO TOTAL - LINHA INTEIRA */}
+                        <CustoTotalChart 
+                            data={custoChartData}
+                            isLoading={isLoading}
+                        />
+
+                        {/* 2. PRIMEIRA LINHA DE KPI CARDS - 2 CARDS LADO A LADO */}
                         <KpiRow>
-                            <CustoTotalChart 
-                                data={custoChartData}
-                                isLoading={isLoading}
-                            />
                             <DashboardCard 
-                                title="Contratos a Vencer" 
-                                value={contratosVencendo.length}
+                                title="Contratos Ativos" 
+                                value={contratosAtivos}
                                 color="#F59E0B"
                                 icon={
                                     <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                                 }
                             />
-                            
-                        </KpiRow>
-
-                        {/* 2. CHARTS ROW */}
-                        <ChartsRow>
                             <DashboardCard 
                                 title="Ocupação Túmulos" 
                                 value={tumulosOcupados.reduce((acc, curr) => acc + (curr.ocupados || 0), 0)}
@@ -126,6 +129,30 @@ const Dashboard = () => {
                                     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
                                 }
                             />
+                        </KpiRow>
+
+                        {/* 3. SEGUNDA LINHA DE KPI CARDS - 2 CARDS LADO A LADO */}
+                        <KpiRow>
+                            <DashboardCard 
+                                title="Total de Eventos" 
+                                value={custoChartData.length}
+                                color="#F82122"
+                                icon={
+                                    <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                                }
+                            />
+                            <DashboardCard 
+                                title="Fornecedores Ativos" 
+                                value={fornecedorData.length}
+                                color="#0088FE"
+                                icon={
+                                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                                }
+                            />
+                        </KpiRow>
+
+                        {/* 4. GRÁFICOS PRINCIPAIS - 2 GRÁFICOS LADO A LADO */}
+                        <ChartsRow>
                             {/* Gráfico de Pizza: Localização */}
                             <ChartWrapper>
                                 <ChartTitle>Localização Contratos Ativos</ChartTitle>
@@ -181,7 +208,7 @@ const Dashboard = () => {
                             </ChartWrapper>
                         </ChartsRow>
 
-                        {/* 3. LISTA DE DETALHES (Opcional: Contratos Vencendo) */}
+                        {/* 5. LISTA DE DETALHES (Opcional: Contratos Vencendo) */}
                         <Section>
                             <ChartTitle>Próximos Vencimentos de Contrato</ChartTitle>
                             <Table>
@@ -283,18 +310,26 @@ const ContentGrid = styled.div`
     padding-bottom: 2rem;
 `;
 
-// COLUNA ÚNICA - Todos os elementos em sequência vertical
+// KPI ROW AGORA COM 2 CARDS LADO A LADO
 const KpiRow = styled.div`
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
 `;
 
-// Remove o grid e usa coluna única também
+// CHARTS ROW COM 2 GRÁFICOS LADO A LADO
 const ChartsRow = styled.div`
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
+    }
 `;
 
 const ChartWrapper = styled.div`

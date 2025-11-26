@@ -39,6 +39,11 @@ const api = {
         return await axios.get("/contratoVencendo");
     },
 
+    getContratosAtivos: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/contratosAtivos");
+    },
+    
+
     // ==========================================
     // TITULARES
     // ==========================================
