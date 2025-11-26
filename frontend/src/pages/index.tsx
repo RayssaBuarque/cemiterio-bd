@@ -40,6 +40,14 @@ const Dashboard = () => {
         }).format(value);
     };
 
+    const formatCPF = (cpf: string | undefined) => {
+        if (!cpf) return '';
+        // Remove tudo que não é dígito
+        const cleaned = cpf.replace(/\D/g, '');
+        // Aplica a máscara XXX.XXX.XXX-XX
+        return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
     const formatPercentageValue = (value: number) => {
         // Verifica se o valor é válido, se não for, retorna 0
         if (isNaN(value) || value === null || value === undefined) return '0,0';
@@ -276,18 +284,18 @@ const Dashboard = () => {
                             <Table>
                                 <thead>
                                     <tr>
+                                        <th>CPF</th>
                                         <th>Titular</th>
                                         <th>Vencimento</th>
-                                        <th>Valor</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {data.contratosVencendo.length > 0 ? (
                                         data.contratosVencendo.map((contrato, idx) => (
                                             <tr key={idx}>
+                                                <td>{formatCPF(contrato.cpf)}</td>
                                                 <td>{contrato.nome_titular}</td>
                                                 <td>{new Date(contrato.data_fim).toLocaleDateString('pt-BR')}</td>
-                                                <td>{formatCurrency(contrato.valor)}</td>
                                             </tr>
                                         ))
                                     ) : (
