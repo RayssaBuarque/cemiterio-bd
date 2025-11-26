@@ -11,11 +11,12 @@ interface TumuloRowProps {
     status: 'Vazio' | 'Reservado' | 'Cheio';
     tipo: 'Túmulo Familiar' | 'Gaveta' | 'Mausoléu' | 'Túmulo Duplo';
     capacidade: number;
+    atual: number;
     isEven: boolean;
     updateList: () => void;
 }
 
-const TumuloRow = ({ id, status, tipo, capacidade, isEven, updateList }: TumuloRowProps) => {
+const TumuloRow = ({ id, status, tipo, capacidade, atual, isEven, updateList }: TumuloRowProps) => {
     
     const [isModalOpen, setisModalOpen] = useState(false);
     const { register, handleSubmit } = useForm<ITumuloInput>();
@@ -94,16 +95,29 @@ const TumuloRow = ({ id, status, tipo, capacidade, isEven, updateList }: TumuloR
                                     </FormGroup>
                                 </FormRow>
 
-                                <FormGroup>
-                                    <StyledLabel htmlFor="capacidade">Capacidade (Nº Corpos)</StyledLabel>
-                                    <StyledInput 
-                                        id="capacidade" 
-                                        type="number" 
-                                        min="1"
-                                        defaultValue={capacidade}
-                                        {...register('capacidade')}
-                                    />
-                                </FormGroup>
+                                <FormRow $columns="1fr 1fr">
+                                    <FormGroup>
+                                        <StyledLabel htmlFor="capacidade">Capacidade (Nº Corpos)</StyledLabel>
+                                        <StyledInput 
+                                            id="capacidade" 
+                                            type="number" 
+                                            min="1"
+                                            defaultValue={capacidade}
+                                            {...register('capacidade')}
+                                        />
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <StyledLabel htmlFor="atual">Atual (Nº Corpos)</StyledLabel>
+                                        <StyledInput 
+                                            id="atual" 
+                                            type="number" 
+                                            min="0"
+                                            max={capacidade}
+                                            defaultValue={atual}
+                                            {...register('atual')}
+                                        />
+                                    </FormGroup>
+                                </FormRow>
                             </FormContainer>
                         </MainPopUp>
                         
@@ -118,12 +132,13 @@ const TumuloRow = ({ id, status, tipo, capacidade, isEven, updateList }: TumuloR
             </ModalOverlay>
         }
 
-        {/* Linha da Tabela */}
+        {/* Linha da Tabela - ATUALIZADA com coluna Atual */}
         <TumuloWrapper onClick={() => setisModalOpen(true)} $isEven={isEven}>
             <p className="id-col">#{id}</p>
             <p>{tipo}</p>
             <StatusBadge $color={getStatusColor(status)}>{status}</StatusBadge>
             <p>{capacidade} Pessoas</p>
+            <p>{atual}/{capacidade}</p> {/* NOVA COLUNA */}
         </TumuloWrapper>
         </>
     )
@@ -173,10 +188,10 @@ const PopUpFooter = styled.footer`
     display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;
 `;
 
-// Deve bater com o TumulosGrid do pai: 0.5fr 1.5fr 1fr 0.5fr
+// ATUALIZADO: grid-template-columns para 5 colunas (ID, Tipo, Status, Capacidade, Atual)
 const TumuloWrapper = styled.div<{ $isEven: boolean }>`
     width: 100%; cursor: pointer; display: grid;
-    grid-template-columns: 0.5fr 1.5fr 1fr 0.5fr; 
+    grid-template-columns: 0.5fr 1.5fr 1fr 0.8fr 0.8fr; /* 5 colunas agora */
     grid-column-gap: 1.5rem; padding: 1rem 0.5rem; 
     align-items: center; border-radius: 4px;
     background-color: ${({$isEven}) => $isEven ? 'var(--background-neutrals-secondary)' : 'transparent'};

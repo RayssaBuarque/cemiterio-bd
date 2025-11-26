@@ -65,7 +65,7 @@ const Tumulos = () => {
         currentPage * maxRows
     )
 
-    return (
+return (
         <>
             <SideBar name={"Túmulos"} />
             <TumulosContainer>
@@ -86,17 +86,16 @@ const Tumulos = () => {
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
-
                     </TumulosInteractions>
-
                 </TumulosTitle>
 
-                {/* Cabeçalho da Tabela */}
+                {/* Cabeçalho da Tabela - ATUALIZADO com 5 colunas */}
                 <TumulosGrid>
                     <label>ID</label>
                     <label>Tipo</label>
                     <label>Status</label>
                     <label>Capacidade</label>
+                    <label>Atual</label> {/* NOVA COLUNA */}
                 </TumulosGrid>
 
                 <TumulosWrapper>
@@ -110,6 +109,7 @@ const Tumulos = () => {
                                     tipo={tumulo.tipo}
                                     status={tumulo.status}
                                     capacidade={tumulo.capacidade}
+                                    atual={tumulo.atual} // Passando o valor atual
                                     updateList={getTumulos} 
                                 />
                             )
@@ -122,10 +122,9 @@ const Tumulos = () => {
 
                     {isLoading &&
                         <div className="allRow">
-                        
-                         </div>
+                         {/* Loading spinner ou skeleton */}
+                        </div>
                     }
-
                 </TumulosWrapper>
 
                 <TumulosFooter>
@@ -162,6 +161,27 @@ export default Tumulos;
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
+
+// ATUALIZADO: grid-template-columns para 5 colunas
+const TumulosGrid = styled.div`
+    width: 100%;
+    border-block: 1px solid var(--outline-neutrals-secondary);
+    padding: 1.5rem 0.5rem;
+    display: grid;
+    /* ID | Tipo | Status | Capacidade | Atual */
+    grid-template-columns: 0.5fr 1.5fr 1fr 0.8fr 0.8fr; /* 5 colunas agora */
+    grid-column-gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+
+    label {
+        font: 700 1.125rem/1.5rem 'At Aero Bold';
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+`
+
 
 const TumulosContainer = styled.div`
     padding: 1.5rem;
@@ -234,28 +254,7 @@ const TumulosInteractions = styled.div`
     button {
         max-width: 10rem;
     }
-`
-
-// GRID DEFINITION: Adaptado para 4 colunas (ID, Tipo, Status, Capacidade)
-// Layout: ID (pequeno), Tipo (flex), Status (médio), Capacidade (pequeno)
-const TumulosGrid = styled.div`
-    width: 100%;
-    border-block: 1px solid var(--outline-neutrals-secondary);
-    padding: 1.5rem 0.5rem;
-    display: grid;
-    /* ID | Tipo | Status | Capacidade */
-    grid-template-columns: 0.5fr 2fr 1fr 1fr; 
-    grid-column-gap: 1.5rem;
-    align-items: center;
-    margin-bottom: 0.75rem;
-
-    label {
-        font: 700 1.125rem/1.5rem 'At Aero Bold';
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-`
+`   
 
 const TumulosWrapper = styled.div`
     width: 100%;
