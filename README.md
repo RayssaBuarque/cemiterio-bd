@@ -60,6 +60,10 @@ http://localhost:<PORTA>/titular
 
 ---
 
+# Vídeo
+Video ensinando a como executar estas instruções...
+https://youtu.be/9bLcnLmpuGY
+
 A seguir, a lista dos membros da equipe que contribuíram ativamente para a modelagem, implementação e documentação deste projeto.
 
 | Nome | GitHub | Função Principal |
