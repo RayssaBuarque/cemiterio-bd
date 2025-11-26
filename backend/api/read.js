@@ -257,7 +257,7 @@ const getFalecidosFiltro = (db) => {
 const getFornecedores = (db) => {
   return async (req, res) => {
     try {
-      const result = await db.query("SELECT * FROM fornecedor");
+      const result = await db.query("SELECT * FROM fornecedor, telefone_fornecedor WHERE fornecedor.CNPJ = telefone_fornecedor.CNPJ");
       return res.json(result.rows);
     } catch (err) {
       console.error(err);
