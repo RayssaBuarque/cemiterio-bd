@@ -439,6 +439,68 @@ const createSepultamento = (db) => {
   };
 };
 
+const createFuncionarioEvento = (db) => {
+  return async (req, res) => {
+    const { cpf, id_evento } = req.body;
+
+    try {
+      if (!cpf || !id_evento) {
+        return res.status(400).json({ error: "CPF do funcionário e ID do evento são obrigatórios" });
+      }
+
+      // Verificar se o funcionário existe
+      const funcionarioCheck = await db.query(
+        'SELECT * FROM funcionario WHERE cpf = $1',
+        [cpf]
+      );
+
+      if (funcionarioCheck.rows.length === 0) {
+        return res.status(404).json({ error: "Funcionário não encontrado" });
+      }
+
+      // Verificar se o evento existe
+      const eventoCheck = await db.query(
+        'SELECT * FROM evento WHERE id_evento = $1',
+        [id_evento]
+      );
+
+      if (eventoCheck.rows.length === 0) {
+        return res.status(404).json({ error: "Evento não encontrado" });
+      }
+
+      // Verificar se a associação já existe
+      const existingCheck = await db.query(
+        'SELECT * FROM funcionario_evento WHERE cpf = $1 AND id_evento = $2',
+        [cpf, id_evento]
+      );
+
+      if (existingCheck.rows.length > 0) {
+        return res.status(409).json({ error: "Funcionário já está alocado neste evento" });
+      }
+
+      const query = `
+        INSERT INTO funcionario_evento (cpf, id_evento)
+        VALUES ($1, $2)
+        RETURNING *;
+      `;
+
+      const values = [cpf, id_evento];
+
+      const result = await db.query(query, values);
+
+      return res.status(201).json({
+        message: "Funcionário alocado ao evento com sucesso",
+        alocacao: result.rows[0]
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ 
+        error: `Erro ao alocar funcionário ao evento:\n ${error.message}` 
+      });
+    }
+  };
+};
 
 export default {
   createContrato,
@@ -450,5 +512,6 @@ export default {
   createSepultamento,
   createTitular,
   createTumulo,
-  createVelorio
+  createVelorio,
+  createFuncionarioEvento
 };

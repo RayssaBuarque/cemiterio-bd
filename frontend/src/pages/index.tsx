@@ -8,6 +8,7 @@ import {
 import api from '../services/api';
 import SideBar from '@/base/Sidebar';
 import DashboardCard from '@/components/DashboardCard';;
+import CustoTotalChart from '@/components/CustoTotalChart';
 import Image from 'next/image';
 
 // Cores para os gráficos
@@ -17,11 +18,12 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     
     // Estados para os dados
-    const [custoTotal, setCustoTotal] = useState(0);
     const [localizacaoData, setLocalizacaoData] = useState<any[]>([]);
     const [fornecedorData, setFornecedorData] = useState<any[]>([]);
     const [contratosVencendo, setContratosVencendo] = useState<any[]>([]);
     const [tumulosOcupados, setTumulosOcupados] = useState<any[]>([]);
+    
+    const [custoChartData, setCustoChartData] = useState<any[]>([]);
 
     const fetchData = async () => {
         try {
@@ -38,14 +40,13 @@ const Dashboard = () => {
                 api.getCustoTotalEventos(),
                 api.getLocalizacaoContratosAtivos(),
                 api.getFornecedorMaisUsadoCadaEvento(),
-                api.getContratosVencendo(), // Extra que você já tinha na API
-                api.getTumulosMaisOcupados() // Extra
+                api.getContratosVencendo(),
+                api.getTumulosMaisOcupados()
             ]);
 
             // Tratamento de Custo Total
-            // Assumindo que retorna { total: number } ou o número direto
-            const total = resCusto.data?.total || resCusto.data || 0;
-            setCustoTotal(total);
+            console.log('Dados de eventos:', resCusto.data);
+            setCustoChartData(Array.isArray(resCusto.data) ? resCusto.data : []);
 
             // Tratamento de Localização (Para Pie Chart)
             // Esperado: [{ name: 'Setor A', value: 30 }, ...]
@@ -100,34 +101,31 @@ const Dashboard = () => {
                     <ContentGrid>
                         {/* 1. KPI CARDS ROW */}
                         <KpiRow>
-                            <DashboardCard 
-                                title="Custo Total de Eventos" 
-                                value={formatCurrency(custoTotal)}
-                                color="#F82122" // Brand Red
-                                icon={
-                                    <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.38z"/></svg>
-                                }
+                            <CustoTotalChart 
+                                data={custoChartData}
+                                isLoading={isLoading}
                             />
                             <DashboardCard 
                                 title="Contratos a Vencer" 
                                 value={contratosVencendo.length}
-                                color="#F59E0B" // Warning Yellow
+                                color="#F59E0B"
                                 icon={
                                     <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                                 }
                             />
-                            <DashboardCard 
-                                title="Ocupação Túmulos" 
-                                value={tumulosOcupados.reduce((acc, curr) => acc + (curr.ocupados || 0), 0)}
-                                color="#10B981" // Success Green
-                                icon={
-                                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-                                }
-                            />
+                            
                         </KpiRow>
 
                         {/* 2. CHARTS ROW */}
                         <ChartsRow>
+                            <DashboardCard 
+                                title="Ocupação Túmulos" 
+                                value={tumulosOcupados.reduce((acc, curr) => acc + (curr.ocupados || 0), 0)}
+                                color="#10B981"
+                                icon={
+                                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                                }
+                            />
                             {/* Gráfico de Pizza: Localização */}
                             <ChartWrapper>
                                 <ChartTitle>Localização Contratos Ativos</ChartTitle>
@@ -141,7 +139,7 @@ const Dashboard = () => {
                                             outerRadius={80}
                                             fill="#8884d8"
                                             paddingAngle={5}
-                                            dataKey="value" // Certifique-se que sua API retorna { name: '...', value: number }
+                                            dataKey="value"
                                             nameKey="name"
                                         >
                                             {localizacaoData.map((entry, index) => (
@@ -224,12 +222,33 @@ export default Dashboard;
 const Container = styled.div`
     width: 100%;
     min-height: 100vh;
+    height: 100vh; /* Altura fixa da viewport */
     padding: 2rem;
-    max-width: 1920px;
+    max-width: 1400px; /* Largura máxima reduzida para melhor leitura */
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    overflow-y: auto; /* Permite scroll vertical */
+    
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: var(--background-neutrals-secondary);
+        border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: var(--brand-primary);
+        border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb:hover {
+        background: var(--brand-primary-dark);
+    }
     
     * { color: var(--content-neutrals-primary); }
 `;
@@ -260,22 +279,22 @@ const ContentGrid = styled.div`
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    flex: 1;
+    padding-bottom: 2rem;
 `;
 
+// COLUNA ÚNICA - Todos os elementos em sequência vertical
 const KpiRow = styled.div`
     display: flex;
+    flex-direction: column;
     gap: 1.5rem;
-    flex-wrap: wrap;
 `;
 
+// Remove o grid e usa coluna única também
 const ChartsRow = styled.div`
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
-
-    @media (max-width: 1024px) {
-        grid-template-columns: 1fr;
-    }
 `;
 
 const ChartWrapper = styled.div`
@@ -286,7 +305,7 @@ const ChartWrapper = styled.div`
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    min-height: 350px;
+    min-height: 400px;
 `;
 
 const ChartTitle = styled.h4`

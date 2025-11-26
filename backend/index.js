@@ -88,6 +88,8 @@ app.post("/fornecedor", createRoutes.createFornecedor(db));
 app.post("/funcionario", createRoutes.createFuncionario(db));
 app.post("/titular", createRoutes.createTitular(db));
 app.post("/tumulo", createRoutes.createTumulo(db));
+app.post("/addFuncionarioEvento", createRoutes.createFuncionarioEvento(db));
+
 
 // Rotas de DELEÇÃO
 app.delete("/contrato", deleteRoutes.deleteContrato(db));
