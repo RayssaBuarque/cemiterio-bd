@@ -7,15 +7,16 @@ import { IFornecedorInput } from '../types';
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import FornecedorRow from '@/components/FornecedoresRow';
+import FornecedorRow from '@/components/FornecedoresRow'; // Corrigido import para singular padrão
 import FornecedorPopUp from '@/components/FornecedoresPopUp';
+;
 
 const Fornecedores = () => {
 
     const [fornecedores, setFornecedores] = useState<IFornecedorInput[]>([])
     const [filteredFornecedores, setFilteredFornecedores] = useState<IFornecedorInput[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Estado do modal
+    const [isOpen, setisOpen] = useState(false)
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -39,7 +40,6 @@ const Fornecedores = () => {
         }
     }
 
-    // Função chamada ao fechar o modal
     const OnClosePopUp = async (shouldRefresh?: boolean) => {
         setisOpen(false);
         if (shouldRefresh) {
@@ -47,12 +47,10 @@ const Fornecedores = () => {
         }
     }
 
-    // Busca inicial
     useEffect(() => {
         getFornecedores()
     }, [])
 
-    // Lógica de Filtro
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
         const filtered = fornecedores.filter((fornecedor) => 
@@ -92,7 +90,6 @@ const Fornecedores = () => {
                             + Adicionar
                         </SecondaryButton>
 
-                        {/* Modal de Adição */}
                         <FornecedorPopUp isOpen={isOpen} onClose={OnClosePopUp} />
 
                     </FornecedoresInteractions>
@@ -102,6 +99,7 @@ const Fornecedores = () => {
                 <FornecedoresGrid>
                     <label>CNPJ</label>
                     <label>Nome</label>
+                    <label>Telefone</label>
                     <label>Endereço</label>
                 </FornecedoresGrid>
 
@@ -114,8 +112,8 @@ const Fornecedores = () => {
                                     isEven={index % 2 === 0}
                                     cnpj={fornecedor.cnpj}
                                     nome={fornecedor.nome}
-                                    endereco={fornecedor.endereco}
                                     telefone={fornecedor.telefone}
+                                    endereco={fornecedor.endereco}
                                     updateList={getFornecedores} 
                                 />
                             )
@@ -128,6 +126,7 @@ const Fornecedores = () => {
 
                     {isLoading &&
                         <div className="allRow">
+  
                          </div>
                     }
 
@@ -241,12 +240,14 @@ const FornecedoresInteractions = styled.div`
     }
 `
 
+// GRID DEFINITION: 4 colunas
 const FornecedoresGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    grid-template-columns: 1fr 2fr 3fr; 
+    /* CNPJ | Nome | Telefone | Endereço */
+    grid-template-columns: 1.2fr 2fr 1.2fr 2.5fr; 
     grid-column-gap: 1.5rem;
     align-items: center;
     margin-bottom: 0.75rem;

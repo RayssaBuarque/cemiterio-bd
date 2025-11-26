@@ -25,10 +25,10 @@ export default function FornecedorPopUp({ isOpen, onClose }: FornecedorPopUpProp
     const postFornecedor = async (data: IFornecedorInput) => {
         try {
             await api.createFornecedor(data);
-            onClose(true); // Fecha e sinaliza para atualizar a lista
+            onClose(true); 
         } catch (err) {
             console.error("Erro ao criar fornecedor:", err);
-            alert("Erro ao criar fornecedor. Verifique se o CNPJ já existe.");
+            alert("Erro ao criar fornecedor. Verifique os dados.");
         }
     }
 
@@ -69,16 +69,27 @@ export default function FornecedorPopUp({ isOpen, onClose }: FornecedorPopUpProp
                                 </FormGroup>
                             </FormRow>
 
-                            {/* Linha 2: Endereço */}
-                            <FormGroup>
-                                <StyledLabel htmlFor="endereco">Endereço Completo</StyledLabel>
-                                <StyledInput 
-                                    id="endereco" 
-                                    type="text" 
-                                    {...register('endereco', { required: true })}
-                                    placeholder="Rua, Número, Bairro, Cidade - UF"
-                                />
-                            </FormGroup>
+                            {/* Linha 2: Telefone e Endereço */}
+                            <FormRow $columns="1fr 2fr">
+                                <FormGroup>
+                                    <StyledLabel htmlFor="telefone">Telefone</StyledLabel>
+                                    <StyledInput 
+                                        id="telefone" 
+                                        type="text" 
+                                        {...register('telefone')}
+                                        placeholder="(XX) XXXXX-XXXX"
+                                    />
+                                </FormGroup>
+                                <FormGroup>
+                                    <StyledLabel htmlFor="endereco">Endereço Completo</StyledLabel>
+                                    <StyledInput 
+                                        id="endereco" 
+                                        type="text" 
+                                        {...register('endereco', { required: true })}
+                                        placeholder="Rua, Número, Bairro, Cidade - UF"
+                                    />
+                                </FormGroup>
+                            </FormRow>
                         </FormContainer>
                     </MainPopUp>
                     

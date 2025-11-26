@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { IFornecedorInput } from '../types';
+import { IFuncionarioInput } from '../types'; // Certifique-se que o caminho está correto
 
 // components
 import Button from '../components/Button';
 import SecondaryButton from '../components/SecondaryButton';
 import SideBar from '../base/Sidebar';
-import FornecedorRow from '@/components/FornecedoresRow'; // Corrigido import para singular padrão
-import FornecedorPopUp from '@/components/FornecedoresPopUp';
+import FuncionarioRow from '../components/FuncionarioRow';
+import FuncionarioPopUp from '@/components/FuncionarioPopUp'; // Novo componente
 
 import Image from 'next/image';
-import LoadingSVG from '../public/loading.svg';
 
-const Fornecedores = () => {
+const Funcionarios = () => {
 
-    const [fornecedores, setFornecedores] = useState<IFornecedorInput[]>([])
-    const [filteredFornecedores, setFilteredFornecedores] = useState<IFornecedorInput[]>([])
+    const [funcionarios, setFuncionarios] = useState<IFuncionarioInput[]>([])
+    const [filteredFuncionarios, setFilteredFuncionarios] = useState<IFuncionarioInput[]>([])
     
     const [isOpen, setisOpen] = useState(false)
     const [isLoading, setisLoading] = useState(true)
@@ -26,122 +25,127 @@ const Fornecedores = () => {
     const [query, setQuery] = useState('')
     const maxRows = 11;
 
-    const getFornecedores = async () => {
+    const getFuncionarios = async () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            const { data } = await api.getFornecedores()
+            const { data } = await api.getFuncionarios()
             if (data) {
-                setFornecedores(data);
-                setFilteredFornecedores(data);
+                setFuncionarios(data);
+                setFilteredFuncionarios(data);
             }
         } catch (error) {
-            console.error("Erro ao buscar fornecedores:", error)
+            console.error("Erro ao buscar funcionários:", error)
         } finally {
             setisLoading(false)
         }
     }
 
+    // Handler para fechar o modal e recarregar a lista se necessário
     const OnClosePopUp = async (shouldRefresh?: boolean) => {
         setisOpen(false);
         if (shouldRefresh) {
-            await getFornecedores();
+            await getFuncionarios();
         }
     }
 
+    // Busca inicial
     useEffect(() => {
-        getFornecedores()
+        getFuncionarios()
     }, [])
 
+    // Lógica de Filtro (Busca por Nome, CPF ou Função)
     useEffect(() => {
         const lowerQuery = query.toLowerCase();
-        const filtered = fornecedores.filter((fornecedor) => 
-            fornecedor.nome.toLowerCase().includes(lowerQuery) || 
-            fornecedor.cnpj.includes(lowerQuery) ||
-            fornecedor.endereco.toLowerCase().includes(lowerQuery)
+        const filtered = funcionarios.filter((func) => 
+            func.nome.toLowerCase().includes(lowerQuery) || 
+            func.cpf.includes(lowerQuery) ||
+            func.funcao.toLowerCase().includes(lowerQuery)
         );
-        setFilteredFornecedores(filtered);
+        setFilteredFuncionarios(filtered);
         setCurrentPage(1);
-    }, [query, fornecedores])
+    }, [query, funcionarios])
 
-    const totalPages = Math.ceil(filteredFornecedores.length / maxRows)
-    const currentFornecedores = filteredFornecedores.slice(
+    // Lógica de Paginação
+    const totalPages = Math.ceil(filteredFuncionarios.length / maxRows)
+    const currentFuncionarios = filteredFuncionarios.slice(
         (currentPage - 1) * maxRows,
         currentPage * maxRows
     )
 
     return (
         <>
-            <SideBar name={"Fornecedores"} />
-            <FornecedoresContainer>
-                <FornecedoresTitle>
-                    <h5>Fornecedores</h5>
+            <SideBar name={"Funcionários"} />
+            <FuncionariosContainer>
+                <FuncionariosTitle>
+                    <h5>Funcionários</h5>
 
-                    <FornecedoresInteractions>
-                        <FornecedoresFilter>
+                    <FuncionariosInteractions>
+                        <FuncionariosFilter>
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar por CNPJ, nome ou endereço..."
+                                placeholder="Buscar por nome, CPF ou função..."
                             />
-                            <Button onClick={() => getFornecedores()}>Atualizar</Button>
-                        </FornecedoresFilter>
+                            <Button onClick={() => getFuncionarios()}>Atualizar</Button>
+                        </FuncionariosFilter>
                         <span />
                         <SecondaryButton onClick={() => setisOpen(true)}>
                             + Adicionar
                         </SecondaryButton>
 
-                        <FornecedorPopUp isOpen={isOpen} onClose={OnClosePopUp} />
+                        {/* Modal de Adição */}
+                        <FuncionarioPopUp isOpen={isOpen} onClose={OnClosePopUp} />
 
-                    </FornecedoresInteractions>
+                    </FuncionariosInteractions>
 
-                </FornecedoresTitle>
+                </FuncionariosTitle>
 
-                <FornecedoresGrid>
-                    <label>CNPJ</label>
+                {/* Cabeçalho da Tabela - Adaptado para 6 colunas */}
+                <FuncionariosGrid>
+                    <label>CPF</label>
                     <label>Nome</label>
-                    <label>Telefone</label>
-                    <label>Endereço</label>
-                </FornecedoresGrid>
+                    <label>Função</label>
+                    <label>Modelo</label>
+                    <label>Hrs</label>
+                    <label>Salário</label>
+                </FuncionariosGrid>
 
-                <FornecedoresWrapper>
+                <FuncionariosWrapper>
                     {!isLoading &&
-                        currentFornecedores.map((fornecedor, index) => {
+                        currentFuncionarios.map((func, index) => {
                             return (
-                                <FornecedorRow
-                                    key={fornecedor.cnpj}
+                                <FuncionarioRow
+                                    key={func.cpf}
                                     isEven={index % 2 === 0}
-                                    cnpj={fornecedor.cnpj}
-                                    nome={fornecedor.nome}
-                                    telefone={fornecedor.telefone}
-                                    endereco={fornecedor.endereco}
-                                    updateList={getFornecedores} 
+                                    cpf={func.cpf}
+                                    nome={func.nome}
+                                    funcao={func.funcao}
+                                    modelo_contrato={func.modelo_contrato}
+                                    horas_semanais={func.horas_semanais}
+                                    salario={func.salario}
+                                    updateList={getFuncionarios} 
                                 />
                             )
                         })
                     }
 
-                    {!isLoading && filteredFornecedores.length === 0 &&
-                        <p className='allRow noFornecedores'>Nenhum fornecedor encontrado :(</p>
+                    {!isLoading && filteredFuncionarios.length === 0 &&
+                        <p className='allRow noFuncionarios'>Nenhum funcionário encontrado :(</p>
                     }
 
                     {isLoading &&
                         <div className="allRow">
-                             <Image
-                                src={LoadingSVG}
-                                width={50}
-                                height={50}
-                                alt="Loading"
-                            />
-                         </div>
+   
+                        </div>
                     }
 
-                </FornecedoresWrapper>
+                </FuncionariosWrapper>
 
-                <FornecedoresFooter>
-                    <p>{filteredFornecedores.length} fornecedores encontrados</p>
-                    {!isLoading && filteredFornecedores.length > 0 &&
+                <FuncionariosFooter>
+                    <p>{filteredFuncionarios.length} funcionários encontrados</p>
+                    {!isLoading && filteredFuncionarios.length > 0 &&
                         <Pagination>
                             <Button
                                 className={currentPage === 1 ? 'noInteraction' : ''}
@@ -162,19 +166,19 @@ const Fornecedores = () => {
                             >{">"}</Button>
                         </Pagination>
                     }
-                </FornecedoresFooter>
-            </FornecedoresContainer>
+                </FuncionariosFooter>
+            </FuncionariosContainer>
         </>
     )
 }
 
-export default Fornecedores;
+export default Funcionarios;
 
 // ==========================================
 // STYLED COMPONENTS
 // ==========================================
 
-const FornecedoresContainer = styled.div`
+const FuncionariosContainer = styled.div`
     padding: 1.5rem;
     width: 100%;
     height: 100%;
@@ -189,7 +193,7 @@ const FornecedoresContainer = styled.div`
     }
 `
 
-const FornecedoresTitle = styled.div`
+const FuncionariosTitle = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -197,7 +201,7 @@ const FornecedoresTitle = styled.div`
     margin-bottom: 1.5rem;
 `
 
-const FornecedoresFilter = styled.div`
+const FuncionariosFilter = styled.div`
     display: flex;
     gap: 0.5rem;
     width: 100%;
@@ -230,7 +234,7 @@ const FornecedoresFilter = styled.div`
     }
 `
 
-const FornecedoresInteractions = styled.div`
+const FuncionariosInteractions = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
@@ -247,15 +251,16 @@ const FornecedoresInteractions = styled.div`
     }
 `
 
-// GRID DEFINITION: 4 colunas
-const FornecedoresGrid = styled.div`
+// GRID DEFINITION: 6 colunas
+// CPF (pequeno) | Nome (flex) | Função (médio) | Modelo (pequeno) | Hrs (mini) | Salário (pequeno)
+const FuncionariosGrid = styled.div`
     width: 100%;
     border-block: 1px solid var(--outline-neutrals-secondary);
     padding: 1.5rem 0.5rem;
     display: grid;
-    /* CNPJ | Nome | Telefone | Endereço */
-    grid-template-columns: 1.2fr 2fr 1.2fr 2.5fr; 
-    grid-column-gap: 1.5rem;
+    /* CPF | Nome | Função | Modelo | Hrs | Salário */
+    grid-template-columns: 0.8fr 2fr 1.2fr 1fr 0.5fr 0.8fr; 
+    grid-column-gap: 1rem;
     align-items: center;
     margin-bottom: 0.75rem;
 
@@ -267,7 +272,7 @@ const FornecedoresGrid = styled.div`
     }
 `
 
-const FornecedoresWrapper = styled.div`
+const FuncionariosWrapper = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -276,7 +281,7 @@ const FornecedoresWrapper = styled.div`
     border-bottom: 1px solid var(--outline-neutrals-secondary);
     min-height: 200px;
 
-    .noFornecedores{
+    .noFuncionarios{
         text-align: center;
         font: 700 1.125rem/1.5rem 'At Aero Bold';
         margin-top: 2rem;
@@ -291,7 +296,7 @@ const FornecedoresWrapper = styled.div`
     }
 `
 
-const FornecedoresFooter = styled.footer`
+const FuncionariosFooter = styled.footer`
     width: 100%;
     display: flex;
     justify-content: space-between;
