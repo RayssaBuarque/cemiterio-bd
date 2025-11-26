@@ -48,33 +48,35 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
         }
     }, [isOpen]);
 
-    // Lógica de Filtragem dos Túmulos
+    // Lógica de filtragem dos túmulos
     const availableTumulos = useMemo(() => {
-        if (!selectedCpf) return [];
+    if (!selectedCpf) return [];
 
-        return tumulosList.filter(tumulo => {
-            // Casting para any para acessar 'ocupacao' se não estiver na interface padrão ITumuloInput
-            const ocupacao = (tumulo as any).ocupacao || 0;
-            
-            // 1. Remove se estiver cheio (ocupação >= capacidade) ou status 'Ocupado'
-            if (tumulo.status === 'Cheio' || ocupacao >= tumulo.capacidade) return false;
+    return tumulosList.filter(tumulo => {
+        // Validação de propriedades obrigatórias
+        if (!tumulo?.id_tumulo || !tumulo?.capacidade) return false;
 
-            // 2. Se for Livre, mostra
-            if (tumulo.status === 'Vazio') return false;
+        const ocupacao = (tumulo as any).ocupacao || 0;
+        
+        // 1. Remove se estiver cheio (ocupação >= capacidade) ou status 'Cheio'
+        if (tumulo.status === 'Cheio' || ocupacao >= tumulo.capacidade) return false;
 
-            // 3. Se for Reservado, verifica se pertence ao titular selecionado
-            if (tumulo.status === 'Reservado') {
-                const contratoVinculado = contratosList.find(c => 
-                    c.cpf === selectedCpf && 
-                    c.id_tumulo === tumulo.id_tumulo &&
-                    c.status === 'Ativo'
-                );
-                return !!contratoVinculado;
-            }
+        // 2. Se for Vazio, não mostra (mantém a lógica original)
+        if (tumulo.status === 'Vazio') return false;
 
-            return false;
-        });
-    }, [selectedCpf, tumulosList, contratosList]);
+        // 3. Se for Reservado, verifica se pertence ao titular selecionado
+        if (tumulo.status === 'Reservado') {
+            const contratoVinculado = contratosList.find(c => 
+                c?.cpf === selectedCpf && 
+                c?.id_tumulo === tumulo.id_tumulo &&
+                c?.status === 'Ativo'
+            );
+            return !!contratoVinculado;
+        }
+
+        return false;
+    });
+}, [selectedCpf, tumulosList, contratosList]);
 
     // Reseta o campo de túmulo se o usuário trocar de titular
     useEffect(() => {

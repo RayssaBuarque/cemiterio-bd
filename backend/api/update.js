@@ -129,15 +129,39 @@ const updateFalecido = (db) => {
         return res.status(400).json({ error: "CPF é obrigatório" });
       }
 
-      // Verifica se o falecido existe
-      const checkQuery = 'SELECT * FROM falecido WHERE cpf = $1';
-      const checkResult = await db.query(checkQuery, [cpf]);
+      // Início da transação
+      await db.query("BEGIN");
+
+      // 1. Busca o falecido atual para saber o túmulo anterior
+      const falecidoAtualQuery = 'SELECT id_tumulo FROM falecido WHERE cpf = $1';
+      const falecidoAtualResult = await db.query(falecidoAtualQuery, [cpf]);
       
-      if (checkResult.rows.length === 0) {
+      if (falecidoAtualResult.rows.length === 0) {
+        await db.query("ROLLBACK");
         return res.status(404).json({ error: "Falecido não encontrado" });
       }
 
-      const query = `
+      const id_tumulo_anterior = falecidoAtualResult.rows[0].id_tumulo;
+
+      // 2. Se está mudando de túmulo, verifica o novo túmulo
+      if (id_tumulo && id_tumulo !== id_tumulo_anterior) {
+        const novoTumuloQuery = 'SELECT capacidade, atual, status FROM tumulo WHERE id_tumulo = $1';
+        const novoTumuloResult = await db.query(novoTumuloQuery, [id_tumulo]);
+        
+        if (novoTumuloResult.rows.length === 0) {
+          await db.query("ROLLBACK");
+          return res.status(404).json({ error: "Novo túmulo não encontrado" });
+        }
+
+        const novoTumulo = novoTumuloResult.rows[0];
+        if (novoTumulo.atual >= novoTumulo.capacidade) {
+          await db.query("ROLLBACK");
+          return res.status(400).json({ error: "Novo túmulo está cheio. Não é possível adicionar mais falecidos." });
+        }
+      }
+
+      // 3. Atualiza o falecido
+      const updateQuery = `
         UPDATE falecido 
         SET nome = COALESCE($1, nome),
             data_falecimento = COALESCE($2, data_falecimento),
@@ -149,16 +173,96 @@ const updateFalecido = (db) => {
       `;
 
       const values = [nome, data_falecimento, data_nascimento, motivo, id_tumulo, cpf];
+      const result = await db.query(updateQuery, values);
 
-      const result = await db.query(query, values);
+      // 4. Função para atualizar status do túmulo automaticamente
+      const atualizarStatusTumulo = async (id_tumulo_param) => {
+        try {
+          // Busca informações atuais do túmulo
+          const tumuloQuery = `
+            SELECT t.capacidade, t.atual, t.status, 
+                   COUNT(f.cpf) as total_falecidos
+            FROM tumulo t
+            LEFT JOIN falecido f ON t.id_tumulo = f.id_tumulo
+            WHERE t.id_tumulo = $1
+            GROUP BY t.id_tumulo, t.capacidade, t.atual, t.status
+          `;
+          
+          const tumuloResult = await db.query(tumuloQuery, [id_tumulo_param]);
+          
+          if (tumuloResult.rows.length === 0) return;
+          
+          const tumulo = tumuloResult.rows[0];
+          const totalFalecidos = parseInt(tumulo.total_falecidos);
+          const capacidade = parseInt(tumulo.capacidade);
+          
+          let novoStatus = tumulo.status;
+          
+          // Lógica de atualização do status
+          if (totalFalecidos >= capacidade) {
+            novoStatus = 'Cheio';
+          } else if (totalFalecidos > 0) {
+            novoStatus = 'Reservado';
+          } else {
+            novoStatus = 'Livre';
+          }
+          
+          // Atualiza o status se necessário
+          if (novoStatus !== tumulo.status || totalFalecidos !== tumulo.atual) {
+            const updateTumuloQuery = `
+              UPDATE tumulo 
+              SET status = $1, atual = $2
+              WHERE id_tumulo = $3
+            `;
+            
+            await db.query(updateTumuloQuery, [novoStatus, totalFalecidos, id_tumulo_param]);
+            console.log(`✅ Túmulo ${id_tumulo_param} atualizado: ${tumulo.status} → ${novoStatus}, ${tumulo.atual} → ${totalFalecidos}`);
+          }
+          
+          return { 
+            id_tumulo: id_tumulo_param, 
+            status_anterior: tumulo.status, 
+            novo_status: novoStatus,
+            total_falecidos: totalFalecidos,
+            capacidade 
+          };
+          
+        } catch (error) {
+          console.error('❌ Erro ao atualizar status do túmulo:', error);
+          throw error;
+        }
+      };
+
+      // 5. Atualiza status dos túmulos envolvidos
+      const updates = [];
+      
+      // Atualiza túmulo anterior (se houve mudança de túmulo)
+      if (id_tumulo && id_tumulo !== id_tumulo_anterior) {
+        updates.push(atualizarStatusTumulo(id_tumulo_anterior));
+      }
+      
+      // Atualiza túmulo atual (novo ou mesmo)
+      const id_tumulo_atual = id_tumulo || id_tumulo_anterior;
+      updates.push(atualizarStatusTumulo(id_tumulo_atual));
+      
+      // Aguarda todas as atualizações
+      await Promise.all(updates);
+
+      // Commit final
+      await db.query("COMMIT");
 
       return res.status(200).json({
         message: "Falecido atualizado com sucesso",
-        falecido: result.rows[0]
+        falecido: result.rows[0],
+        atualizacao_tumulos: {
+          tumulo_anterior: id_tumulo_anterior !== id_tumulo_atual ? id_tumulo_anterior : null,
+          tumulo_atual: id_tumulo_atual
+        }
       });
 
     } catch (error) {
-      console.error(error);
+      await db.query("ROLLBACK");
+      console.error("Erro ao atualizar falecido:", error);
       return res.status(500).json({ error: `Erro ao atualizar falecido: ${error.message}` });
     }
   };
