@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import api from '../services/api';
-import { ICompras } from '../types'; // Ajuste o caminho se necessário
+import { ICompras } from '../types'; 
 
 // components
 import Button from '@/components/Button';
 import SecondaryButton from '@/components/SecondaryButton';
 import SideBar from '@/base/Sidebar';
 import CompraRow from '@/components/CompraRow';
-
-import Image from 'next/image';
+import CompraPopUp from '@/components/CompraPopUp'; // Importando o Modal
 
 const Compras = () => {
 
     const [compras, setCompras] = useState<ICompras[]>([])
     const [filteredCompras, setFilteredCompras] = useState<ICompras[]>([])
     
-    const [isOpen, setisOpen] = useState(false) // Controle do modal de criação, se for implementar
+    const [isOpen, setisOpen] = useState(false) // Controle do modal
     const [isLoading, setisLoading] = useState(true)
 
     // Paginação e Filtro
@@ -28,7 +27,6 @@ const Compras = () => {
         if (!isLoading) setisLoading(true);
 
         try {
-            // Supondo endpoint getCompras na sua API
             const { data } = await api.getCompras()
             if (data) {
                 setCompras(data);
@@ -38,6 +36,14 @@ const Compras = () => {
             console.error("Erro ao buscar compras:", error)
         } finally {
             setisLoading(false)
+        }
+    }
+
+    // Função chamada ao fechar o modal
+    const OnClosePopUp = async (shouldRefresh?: boolean) => {
+        setisOpen(false);
+        if (shouldRefresh) {
+            await getCompras();
         }
     }
 
@@ -57,7 +63,6 @@ const Compras = () => {
         setCurrentPage(1); 
     }, [query, compras])
 
-    // Lógica de Paginação
     const totalPages = Math.ceil(filteredCompras.length / maxRows)
     const currentCompras = filteredCompras.slice(
         (currentPage - 1) * maxRows,
@@ -86,6 +91,9 @@ const Compras = () => {
                             + Adicionar
                         </SecondaryButton>
 
+                        {/* Modal de Adição */}
+                        <CompraPopUp isOpen={isOpen} onClose={OnClosePopUp} />
+
                     </ComprasInteractions>
 
                 </ComprasTitle>
@@ -103,7 +111,7 @@ const Compras = () => {
                 <ComprasWrapper>
                     {!isLoading &&
                         currentCompras.map((compra, index) => {
-                            // Criando uma chave única composta, já que não temos um ID único simples
+                            // Chave única composta para o map, pois pode não haver ID único
                             const uniqueKey = `${compra.cnpj}-${compra.id_evento}-${compra.data_compra}-${compra.horario}`;
                             return (
                                 <CompraRow
@@ -122,7 +130,7 @@ const Compras = () => {
 
                     {isLoading &&
                         <div className="allRow">
-           
+       
                         </div>
                     }
 
