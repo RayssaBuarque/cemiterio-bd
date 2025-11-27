@@ -100,6 +100,7 @@ app.delete("/titular/:cpf", deleteRoutes.deleteTitular(db));
 
 // Rotas de ATUALIZAÇÃO
 app.put('/titular/:cpf', updateHandlers.updateTitular(db));
+app.put('/evento/:id_evento', updateHandlers.updateEvento(db));
 app.put('/tumulo/:id_tumulo', updateHandlers.updateTumulo(db));
 app.put('/falecido/:cpf', updateHandlers.updateFalecido(db));
 app.put('/contrato/:id_contrato', updateHandlers.updateContrato(db));

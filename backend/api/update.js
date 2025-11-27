@@ -51,7 +51,7 @@ const updateTitular = (db) => {
 const updateTumulo = (db) => {
   return async (req, res) => {
     const { id_tumulo } = req.params;
-    const { status, tipo, capacidade, quadra, setor, numero } = req.body;
+    const { status, tipo, capacidade, quadra, setor, atual, numero } = req.body;
 
     try {
       if (!id_tumulo) {
@@ -69,18 +69,19 @@ const updateTumulo = (db) => {
       // Início da transação
       await db.query("BEGIN");
 
-      // Atualiza a tabela tumulo
+      // CORREÇÃO: Adicionada vírgula faltando e corrigidos os parâmetros
       const updateTumuloQuery = `
         UPDATE tumulo 
         SET status = COALESCE($1, status),
             tipo = COALESCE($2, tipo),
-            capacidade = COALESCE($3, capacidade)
-        WHERE id_tumulo = $4
+            capacidade = COALESCE($3, capacidade),
+            atual = COALESCE($4, atual)
+        WHERE id_tumulo = $5
         RETURNING *;
       `;
 
       const tumuloResult = await db.query(updateTumuloQuery, [
-        status, tipo, capacidade, id_tumulo
+        status, tipo, capacidade, atual, id_tumulo  // CORRIGIDO: 5 parâmetros
       ]);
 
       // Atualiza a tabela localizacao_tumulo se os campos foram fornecidos
@@ -106,8 +107,11 @@ const updateTumulo = (db) => {
 
     } catch (error) {
       await db.query("ROLLBACK");
-      console.error(error);
-      return res.status(500).json({ error: `Erro ao atualizar túmulo: ${error.message}` });
+      console.error("Erro detalhado ao atualizar túmulo:", error);
+      return res.status(500).json({ 
+        error: `Erro ao atualizar túmulo: ${error.message}`,
+        details: error.detail || 'Sem detalhes adicionais'
+      });
     }
   };
 };
@@ -125,15 +129,39 @@ const updateFalecido = (db) => {
         return res.status(400).json({ error: "CPF é obrigatório" });
       }
 
-      // Verifica se o falecido existe
-      const checkQuery = 'SELECT * FROM falecido WHERE cpf = $1';
-      const checkResult = await db.query(checkQuery, [cpf]);
+      // Início da transação
+      await db.query("BEGIN");
+
+      // 1. Busca o falecido atual para saber o túmulo anterior
+      const falecidoAtualQuery = 'SELECT id_tumulo FROM falecido WHERE cpf = $1';
+      const falecidoAtualResult = await db.query(falecidoAtualQuery, [cpf]);
       
-      if (checkResult.rows.length === 0) {
+      if (falecidoAtualResult.rows.length === 0) {
+        await db.query("ROLLBACK");
         return res.status(404).json({ error: "Falecido não encontrado" });
       }
 
-      const query = `
+      const id_tumulo_anterior = falecidoAtualResult.rows[0].id_tumulo;
+
+      // 2. Se está mudando de túmulo, verifica o novo túmulo
+      if (id_tumulo && id_tumulo !== id_tumulo_anterior) {
+        const novoTumuloQuery = 'SELECT capacidade, atual, status FROM tumulo WHERE id_tumulo = $1';
+        const novoTumuloResult = await db.query(novoTumuloQuery, [id_tumulo]);
+        
+        if (novoTumuloResult.rows.length === 0) {
+          await db.query("ROLLBACK");
+          return res.status(404).json({ error: "Novo túmulo não encontrado" });
+        }
+
+        const novoTumulo = novoTumuloResult.rows[0];
+        if (novoTumulo.atual >= novoTumulo.capacidade) {
+          await db.query("ROLLBACK");
+          return res.status(400).json({ error: "Novo túmulo está cheio. Não é possível adicionar mais falecidos." });
+        }
+      }
+
+      // 3. Atualiza o falecido
+      const updateQuery = `
         UPDATE falecido 
         SET nome = COALESCE($1, nome),
             data_falecimento = COALESCE($2, data_falecimento),
@@ -145,16 +173,96 @@ const updateFalecido = (db) => {
       `;
 
       const values = [nome, data_falecimento, data_nascimento, motivo, id_tumulo, cpf];
+      const result = await db.query(updateQuery, values);
 
-      const result = await db.query(query, values);
+      // 4. Função para atualizar status do túmulo automaticamente
+      const atualizarStatusTumulo = async (id_tumulo_param) => {
+        try {
+          // Busca informações atuais do túmulo
+          const tumuloQuery = `
+            SELECT t.capacidade, t.atual, t.status, 
+                   COUNT(f.cpf) as total_falecidos
+            FROM tumulo t
+            LEFT JOIN falecido f ON t.id_tumulo = f.id_tumulo
+            WHERE t.id_tumulo = $1
+            GROUP BY t.id_tumulo, t.capacidade, t.atual, t.status
+          `;
+          
+          const tumuloResult = await db.query(tumuloQuery, [id_tumulo_param]);
+          
+          if (tumuloResult.rows.length === 0) return;
+          
+          const tumulo = tumuloResult.rows[0];
+          const totalFalecidos = parseInt(tumulo.total_falecidos);
+          const capacidade = parseInt(tumulo.capacidade);
+          
+          let novoStatus = tumulo.status;
+          
+          // Lógica de atualização do status
+          if (totalFalecidos >= capacidade) {
+            novoStatus = 'Cheio';
+          } else if (totalFalecidos > 0) {
+            novoStatus = 'Reservado';
+          } else {
+            novoStatus = 'Livre';
+          }
+          
+          // Atualiza o status se necessário
+          if (novoStatus !== tumulo.status || totalFalecidos !== tumulo.atual) {
+            const updateTumuloQuery = `
+              UPDATE tumulo 
+              SET status = $1, atual = $2
+              WHERE id_tumulo = $3
+            `;
+            
+            await db.query(updateTumuloQuery, [novoStatus, totalFalecidos, id_tumulo_param]);
+            console.log(`✅ Túmulo ${id_tumulo_param} atualizado: ${tumulo.status} → ${novoStatus}, ${tumulo.atual} → ${totalFalecidos}`);
+          }
+          
+          return { 
+            id_tumulo: id_tumulo_param, 
+            status_anterior: tumulo.status, 
+            novo_status: novoStatus,
+            total_falecidos: totalFalecidos,
+            capacidade 
+          };
+          
+        } catch (error) {
+          console.error('❌ Erro ao atualizar status do túmulo:', error);
+          throw error;
+        }
+      };
+
+      // 5. Atualiza status dos túmulos envolvidos
+      const updates = [];
+      
+      // Atualiza túmulo anterior (se houve mudança de túmulo)
+      if (id_tumulo && id_tumulo !== id_tumulo_anterior) {
+        updates.push(atualizarStatusTumulo(id_tumulo_anterior));
+      }
+      
+      // Atualiza túmulo atual (novo ou mesmo)
+      const id_tumulo_atual = id_tumulo || id_tumulo_anterior;
+      updates.push(atualizarStatusTumulo(id_tumulo_atual));
+      
+      // Aguarda todas as atualizações
+      await Promise.all(updates);
+
+      // Commit final
+      await db.query("COMMIT");
 
       return res.status(200).json({
         message: "Falecido atualizado com sucesso",
-        falecido: result.rows[0]
+        falecido: result.rows[0],
+        atualizacao_tumulos: {
+          tumulo_anterior: id_tumulo_anterior !== id_tumulo_atual ? id_tumulo_anterior : null,
+          tumulo_atual: id_tumulo_atual
+        }
       });
 
     } catch (error) {
-      console.error(error);
+      await db.query("ROLLBACK");
+      console.error("Erro ao atualizar falecido:", error);
       return res.status(500).json({ error: `Erro ao atualizar falecido: ${error.message}` });
     }
   };
@@ -316,11 +424,90 @@ const updateFuncionario = (db) => {
   };
 };
 
+//-------------------------------------------------------------------------//
+//                                EVENTO                                   //
+//-_______________________________________________________________________-//
+const updateEvento = (db) => {
+  return async (req, res) => {
+    const { id_evento } = req.params;
+    const { lugar, dia, horario, valor, funcionarios } = req.body;
+
+    try {
+      if (!id_evento) {
+        return res.status(400).json({ error: "ID do evento é obrigatório" });
+      }
+
+      // Verifica se o evento existe
+      const checkQuery = 'SELECT * FROM evento WHERE id_evento = $1';
+      const checkResult = await db.query(checkQuery, [id_evento]);
+      
+      if (checkResult.rows.length === 0) {
+        return res.status(404).json({ error: "Evento não encontrado" });
+      }
+
+      // INÍCIO DA TRANSAÇÃO
+      await db.query("BEGIN");
+
+      // Atualiza o evento
+      const updateEventoQuery = `
+        UPDATE evento 
+        SET lugar = COALESCE($1, lugar),
+            dia = COALESCE($2, dia),
+            horario = COALESCE($3, horario),
+            valor = COALESCE($4, valor)
+        WHERE id_evento = $5
+        RETURNING *;
+      `;
+
+      const values = [lugar, dia, horario, valor, id_evento];
+      const result = await db.query(updateEventoQuery, values);
+
+      // ATUALIZA OS FUNCIONÁRIOS ALOCADOS (se fornecidos)
+      if (funcionarios !== undefined) {
+        // Remove alocações existentes
+        await db.query('DELETE FROM funcionario_evento WHERE id_evento = $1', [id_evento]);
+
+        // Insere novas alocações se houver funcionários
+        if (Array.isArray(funcionarios) && funcionarios.length > 0) {
+          const insertValues = funcionarios.map((cpf, index) => 
+            `($1, $${index + 2})`
+          ).join(', ');
+          
+          const insertQuery = `
+            INSERT INTO funcionario_evento (id_evento, cpf) 
+            VALUES ${insertValues}
+          `;
+          
+          await db.query(insertQuery, [id_evento, ...funcionarios]);
+        }
+      }
+
+      // COMMIT FINAL
+      await db.query("COMMIT");
+
+      return res.status(200).json({
+        message: "Evento atualizado com sucesso",
+        evento: result.rows[0]
+      });
+
+    } catch (error) {
+      // ROLLBACK EM CASO DE ERRO
+      await db.query("ROLLBACK");
+      console.error("Erro detalhado ao atualizar evento:", error);
+      return res.status(500).json({ 
+        error: `Erro ao atualizar evento: ${error.message}`,
+        details: error.detail || 'Sem detalhes adicionais'
+      });
+    }
+  };
+};
+
 export default {
   updateTitular,
   updateTumulo,
   updateFalecido,
   updateContrato,
   updateFornecedor,
-  updateFuncionario
+  updateFuncionario,
+  updateEvento
 };

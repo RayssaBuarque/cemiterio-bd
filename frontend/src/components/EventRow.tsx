@@ -30,7 +30,9 @@ const EventRow = ({ id_evento, lugar, dia, horario, valor, isEven }: EventRowPro
     const updateEvent = () => {
         router.push({
             pathname: '/eventoForm',
-            query: { id: id_evento }
+            query: {
+                id: id_evento
+            }
         })
     }
 

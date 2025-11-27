@@ -46,7 +46,7 @@ const FuncionarioInput = ({ funcionarios, selectedFuncionarios, setSelectedFunci
                     disabled={funcionarios.length === 0}
                 >
                     <option value="" disabled>
-                        {funcionarios.length === 0 ? "Nenhum funcionário disponível neste horário" : "Selecione para adicionar..."}
+                        {funcionarios.length === 0 ? "Nenhum funcionário disponível" : "Selecione um funcionário..."}
                     </option>
                     {availableOptions.map(func => (
                         <option key={func.cpf} value={`${func.cpf}|${func.nome}`}>
@@ -58,7 +58,7 @@ const FuncionarioInput = ({ funcionarios, selectedFuncionarios, setSelectedFunci
 
             <SelectedList>
                 {selectedFuncionarios.length === 0 && (
-                    <EmptyState>Nenhum funcionário escalado.</EmptyState>
+                    <EmptyState>Nenhum funcionário selecionado</EmptyState>
                 )}
                 
                 {selectedFuncionarios.map(item => {
@@ -113,6 +113,7 @@ const Select = styled.select`
     &:focus {
         border-color: var(--brand-primary);
         outline: none;
+        background-color: var(--background-neutrals-secondary);
     }
 
     &:disabled {
@@ -121,8 +122,9 @@ const Select = styled.select`
     }
 
     option {
-        background-color: var(--background-neutrals-secondary);
+        background-color: var(--background-neutrals-primary);
         color: var(--content-neutrals-primary);
+        padding: 0.5rem;
     }
 `;
 
@@ -131,25 +133,25 @@ const SelectedList = styled.div`
     flex-wrap: wrap;
     gap: 0.5rem;
     min-height: 3rem;
-    padding: 0.5rem;
-    background-color: rgba(255,255,255,0.02);
+    padding: 0.75rem;
+    background-color: var(--background-neutrals-secondary);
     border-radius: 4px;
-    border: 1px dashed var(--outline-neutrals-secondary);
+    border: 1px solid var(--outline-neutrals-secondary);
 `;
 
 const EmptyState = styled.span`
     font-size: 0.875rem;
     color: var(--content-neutrals-secondary);
-    padding: 0.5rem;
+    font-style: italic;
 `;
 
 const Tag = styled.div`
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
+    padding: 0.375rem 0.75rem;
     background-color: var(--brand-primary);
-    color: #fff;
+    color: white;
     border-radius: 16px;
     font-size: 0.875rem;
     font-weight: 600;
@@ -168,15 +170,18 @@ const RemoveButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: white;
     padding: 0;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
     
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
     svg {
         width: 10px;
         height: 10px;
-    }
-
-    &:hover {
-        opacity: 0.8;
     }
 `;

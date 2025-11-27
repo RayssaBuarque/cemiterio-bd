@@ -48,33 +48,35 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
         }
     }, [isOpen]);
 
-    // Lógica de Filtragem dos Túmulos
+    // Lógica de filtragem dos túmulos
     const availableTumulos = useMemo(() => {
-        if (!selectedCpf) return [];
+    if (!selectedCpf) return [];
 
-        return tumulosList.filter(tumulo => {
-            // Casting para any para acessar 'ocupacao' se não estiver na interface padrão ITumuloInput
-            const ocupacao = (tumulo as any).ocupacao || 0;
-            
-            // 1. Remove se estiver cheio (ocupação >= capacidade) ou status 'Ocupado'
-            if (tumulo.status === 'Cheio' || ocupacao >= tumulo.capacidade) return false;
+    return tumulosList.filter(tumulo => {
+        // Validação de propriedades obrigatórias
+        if (!tumulo?.id_tumulo || !tumulo?.capacidade) return false;
 
-            // 2. Se for Livre, mostra
-            if (tumulo.status === 'Vazio') return false;
+        const ocupacao = (tumulo as any).ocupacao || 0;
+        
+        // 1. Remove se estiver cheio (ocupação >= capacidade) ou status 'Cheio'
+        if (tumulo.status === 'Cheio' || ocupacao >= tumulo.capacidade) return false;
 
-            // 3. Se for Reservado, verifica se pertence ao titular selecionado
-            if (tumulo.status === 'Reservado') {
-                const contratoVinculado = contratosList.find(c => 
-                    c.cpf === selectedCpf && 
-                    c.id_tumulo === tumulo.id_tumulo &&
-                    c.status === 'Ativo'
-                );
-                return !!contratoVinculado;
-            }
+        // 2. Se for Vazio, não mostra (mantém a lógica original)
+        if (tumulo.status === 'Vazio') return false;
 
-            return false;
-        });
-    }, [selectedCpf, tumulosList, contratosList]);
+        // 3. Se for Reservado, verifica se pertence ao titular selecionado
+        if (tumulo.status === 'Reservado') {
+            const contratoVinculado = contratosList.find(c => 
+                c?.cpf === selectedCpf && 
+                c?.id_tumulo === tumulo.id_tumulo &&
+                c?.status === 'Ativo'
+            );
+            return !!contratoVinculado;
+        }
+
+        return false;
+    });
+}, [selectedCpf, tumulosList, contratosList]);
 
     // Reseta o campo de túmulo se o usuário trocar de titular
     useEffect(() => {
@@ -85,47 +87,29 @@ export default function FalecidoPopUp({ isOpen, onClose }: FalecidoPopUpProps) {
         try {
             const idTumulo = Number(data.id_tumulo);
             const payload = {
-                ...data,
-                id_tumulo: idTumulo
+            ...data,
+            id_tumulo: idTumulo
             };
 
-            // 1. Cria o registro do falecido
+            console.log("Enviando dados para criar falecido:", payload);
+
+            // APENAS cria o falecido - o backend já cuida de incrementar o túmulo
             await api.createFalecido(payload);
-
-            // 2. Atualiza a quantidade (+1) no túmulo selecionado
-            const tumuloTarget = tumulosList.find(t => t.id_tumulo === idTumulo);
-            
-            if (tumuloTarget) {
-                // Recupera ocupação atual (assumindo 0 se indefinido)
-                const currentOcupacao = (tumuloTarget as any).ocupacao || 0;
-                const newOcupacao = currentOcupacao + 1;
-                
-                // Verifica se lotou para atualizar o status
-                let newStatus = tumuloTarget.status;
-                if (newOcupacao >= tumuloTarget.capacidade) {
-                    newStatus = 'Cheio';
-                } else if (tumuloTarget.status === 'Vazio') {
-                    // Opcional: Se era livre e recebeu 1 corpo (mas não lotou), 
-                    // pode mudar para 'Parcial' ou manter a lógica de negócio desejada.
-                    // Aqui mantemos 'Livre' ou mudamos para 'Ocupado' apenas se encher.
-                }
-
-                // Chama o update (certifique-se que este método existe no seu api.ts)
-                // Se não existir, use axios.put(`/tumulo/${idTumulo}`, ...)
-                if (api.updateTumulo) {
-                    await api.updateTumulo(idTumulo, {
-                        ...tumuloTarget,
-                        capacidade: newOcupacao,
-                        status: newStatus
-                    });
-                }
-            }
 
             reset(); 
             onClose(true); 
-        } catch (err) {
-            console.error("Erro ao cadastrar falecido:", err);
-            alert("Erro ao cadastrar falecido. Verifique os dados.");
+            
+        } catch (err: any) {
+            console.error("Erro detalhado ao cadastrar falecido:", err);
+            
+            // Log mais detalhado do erro
+            if (err.response) {
+            console.error("Status:", err.response.status);
+            console.error("Dados do erro:", err.response.data);
+            console.error("Headers:", err.response.headers);
+            }
+            
+            alert(err.response?.data?.error || "Erro ao cadastrar falecido. Verifique os dados.");
         }
     }
 

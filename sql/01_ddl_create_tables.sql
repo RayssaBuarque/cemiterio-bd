@@ -52,7 +52,7 @@ CREATE TABLE falecido ( ------------
     data_falecimento DATE,
     data_nascimento DATE,
     motivo VARCHAR(200),
-	ID_tumulo INT UNIQUE,
+	ID_tumulo INT,
 	PRIMARY KEY (CPF, nome),
 	FOREIGN KEY (CPF) REFERENCES titular(CPF),
 	FOREIGN KEY (ID_tumulo) REFERENCES tumulo(ID_tumulo)
@@ -100,7 +100,7 @@ CREATE TABLE compra (
     quantidade INT,
     data_compra DATE,
 	horario TIME,
-	PRIMARY KEY (CNPJ, ID_evento),
+	PRIMARY KEY (CNPJ, ID_evento, data_compra, horario),
     FOREIGN KEY (CNPJ) REFERENCES fornecedor(CNPJ),
 	FOREIGN KEY (ID_evento) REFERENCES evento(ID_evento)
 );
