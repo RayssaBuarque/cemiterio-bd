@@ -66,14 +66,13 @@ app.get("/estatisticasFalecidos", readRoutes.getEstatisticasFalecidos(db));
 app.get("/fornecedorMaisUsadoCadaEvento", readRoutes.getFornecedorMaisUsado(db));
 
 //dashboard
-app.get("/taxaOcupacao", readRoutes.getTaxaOcupacao(db));
-app.get("/contratosAtivos", readRoutes.getContratosAtivos(db));
-app.get("/faturamentoDoMes", readRoutes.getFaturamentoDoMes(db));
-app.get("/eventosProximos", readRoutes.getEventosProximos(db));
+app.get("/taxaOcupacao", readRoutes.getTaxaOcupacao(db)); // Valor
+app.get("/contratosAtivos", readRoutes.getContratosAtivos(db)); // Valor
+app.get("/faturamentoDoMes", readRoutes.getFaturamentoDoMes(db)); // Soma de todos os contratos ativos no mês atual;
+app.get("/eventosProximos", readRoutes.getEventosProximos(db)); // Lista de todos os eventos que estão por vir em até 7 dias
 app.get("/faturamentoComparativo", readRoutes.getFaturamentoComparativo(db));
-app.get("/faturamentoNoAno", readRoutes.getFaturamentoComparativo(db));
-app.get("/contratoVencendo", readRoutes.getContratosAVencer(db));
-
+app.get("/faturamentoNoAno", readRoutes.getFaturamentoComparativo(db)); // Lista de faturamento por mês no ano atual
+app.get("/contratoVencendo", readRoutes.getContratosAVencer(db)); // Lista de contratos vencendo em até 30 dias
 
 
 
@@ -98,6 +97,7 @@ app.delete("/evento/:id_evento", deleteRoutes.deleteEvento(db));
 app.delete("/funcionario/:cpf", deleteRoutes.deleteFuncionario(db));
 app.delete("/titular/:cpf", deleteRoutes.deleteTitular(db));
 app.delete("/tumulo/:id_tumulo", deleteRoutes.deleteTumulo(db));
+
 // Rotas de ATUALIZAÇÃO
 app.put('/titular/:cpf', updateHandlers.updateTitular(db));
 app.put('/evento/:id_evento', updateHandlers.updateEvento(db));

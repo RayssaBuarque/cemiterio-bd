@@ -244,7 +244,7 @@ const api = {
     },
 
     // ==========================================
-    // EVENTOS ESPECÍFICOS (CREMAÇÃO / VELÓRIO / SEPULTAMENTO)
+    // EVENTOS ESPECÍFICOS
     // ==========================================
     createCremacao: async (dados: any): Promise<AxiosResponse<any>> => {
         return await axios.post("/cremacao", dados, {
@@ -262,6 +262,33 @@ const api = {
         return await axios.post("/sepultamento", dados, {
             headers: { "Content-Type": "application/json" }
         });
+    },
+
+    // ==========================================
+    // DASHBOARD
+    // ==========================================
+    getTaxaOcupacao: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/taxaOcupacao");
+    },
+
+    getFaturamentoDoMes: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/faturamentoDoMes");
+    },
+
+    getEventosProximos: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/eventosProximos");
+    },
+
+    getFaturamentoComparativo: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/faturamentoComparativo");
+    },
+
+    getFaturamentoNoAno: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/faturamentoNoAno");
+    },
+
+    getContratosAVencer: async (): Promise<AxiosResponse<any>> => {
+        return await axios.get("/contratoVencendo");
     },
 };
 
